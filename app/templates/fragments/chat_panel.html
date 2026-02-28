@@ -1,0 +1,84 @@
+<!-- Chat panel: inline card below quiz button, toggled by button -->
+<div style="margin-top: 1rem;">
+  <button
+    onclick="document.getElementById('chat-panel').style.display = document.getElementById('chat-panel').style.display === 'none' ? 'block' : 'none';"
+    class="btn btn-outline btn-sm w-full"
+    style="min-height: 44px;">
+    Chiedi a Claude
+  </button>
+
+  <div id="chat-panel" style="display: none; margin-top: 0.75rem;">
+    <div class="card bg-base-100 border border-base-300">
+      <div class="card-body" style="padding: 0.75rem;">
+        <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
+
+        <!-- Message history -->
+        <div id="chat-messages" style="min-height: 60px; max-height: 320px; overflow-y: auto; margin-bottom: 0.5rem;">
+          <!-- Chat bubbles appended here by JS -->
+        </div>
+
+        <!-- Input form — submits via JS, opens EventSource GET to /chat/stream -->
+        <form id="chat-form" onsubmit="startChatStream(event, '{{ topic.slug }}')">
+          <input type="text" id="chat-input" name="question"
+                 class="input input-bordered input-sm w-full"
+                 placeholder="Fai una domanda..."
+                 autocomplete="off"
+                 style="margin-bottom: 0.5rem;">
+          <button type="submit" class="btn btn-primary btn-sm w-full" style="min-height: 44px;">
+            Invia
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function startChatStream(e, topicSlug) {
+  e.preventDefault();
+  var input = document.getElementById('chat-input');
+  var q = input.value.trim();
+  if (!q) return;
+
+  // Add user bubble
+  var messages = document.getElementById('chat-messages');
+  var userBubble = document.createElement('div');
+  userBubble.className = 'chat chat-end';
+  userBubble.innerHTML = '<div class="chat-bubble" style="font-size: 0.8125rem;">' + escapeHtml(q) + '</div>';
+  messages.appendChild(userBubble);
+
+  // Add assistant bubble (will be filled by stream)
+  var uid = Date.now();
+  var asstBubble = document.createElement('div');
+  asstBubble.className = 'chat chat-start';
+  asstBubble.innerHTML = '<div class="chat-bubble chat-bubble-primary" id="resp-' + uid + '" style="font-size: 0.8125rem; white-space: pre-wrap;"></div>';
+  messages.appendChild(asstBubble);
+  messages.scrollTop = messages.scrollHeight;
+
+  var target = document.getElementById('resp-' + uid);
+  input.value = '';
+
+  // Open SSE stream (GET — EventSource is GET-only)
+  var url = '/chat/stream?q=' + encodeURIComponent(q) + '&topic_slug=' + encodeURIComponent(topicSlug || '');
+  var es = new EventSource(url);
+  es.onmessage = function(evt) {
+    if (evt.data === '[DONE]') {
+      es.close();
+      return;
+    }
+    if (evt.data.startsWith('[ERROR')) {
+      target.textContent += '\n[Errore: ' + evt.data + ']';
+      es.close();
+      return;
+    }
+    // Unescape newlines (server escapes \n -> \\n to protect SSE framing)
+    target.textContent += evt.data.replace(/\\n/g, '\n');
+    messages.scrollTop = messages.scrollHeight;
+  };
+  es.onerror = function() { es.close(); };
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>

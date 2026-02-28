@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T18:10:07.357Z"
+last_updated: "2026-02-28T19:47:43Z"
 progress:
-  total_phases: 2
+  total_phases: 4
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 2, Plan 3 complete — timed practice exam live at /exam with AI explanations
+**Current focus:** Phase 3, Plan 1 complete — progress dashboard live at /progress with SRS stats and topic completion badges
 
 ## Current Position
 
-Phase: 2 of 4 (Active Learning)
-Plan: 3 of N complete
-Status: Phase 2 in progress — 02-01, 02-02, 02-03 done
-Last activity: 2026-02-28 — Completed 02-03 (timed practice exam, countdown timer, per-question AI explanations)
+Phase: 3 of 4 (Progress and AI Chat)
+Plan: 1 of N complete
+Status: Phase 3 in progress — 03-01 done
+Last activity: 2026-02-28 — Completed 03-01 (progress dashboard at /progress, SRS counts, per-subject quiz accuracy, topic completion badges)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
@@ -41,10 +41,11 @@ Progress: [█████░░░░░] 50%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 44 min | 22 min |
-| 2. Active Learning | 3/N | 12 min | 4 min |
+| 2. Active Learning | 3/3 | 12 min | 4 min |
+| 3. Progress and AI Chat | 1/N | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min), 02-02 (2 min), 02-03 (5 min)
+- Last 5 plans: 01-02 (40 min), 02-01 (5 min), 02-02 (2 min), 02-03 (5 min), 03-01 (2 min)
 - Trend: fast execution on DB + UI tasks
 
 *Updated after each plan completion*
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [02-03]: start_time_epoch embedded server-side in form data-start-time; JS computes remaining = startTime + duration - Date.now()/1000 for drift-free countdown
 - [02-03]: htmx.trigger(form, 'submit') used for timer auto-submit — bypasses neither HTMX nor hx-push-url; form.submit() would
 - [02-03]: Hidden question_ids field in exam form — POST handler processes all questions (including unanswered) regardless of radio button state
+- [03-01]: Single GROUP BY query for best_scores in fragment router to avoid N+1 per topic
+- [03-01]: SRS new_cards computed as total_cards - reviewed_cards (no SRSState row = never reviewed)
+- [03-01]: learned_cards clamped with max(0,...) to guard against edge cases where due > reviewed
 
 ### Pending Todos
 
@@ -92,10 +96,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T18:03Z
-Stopped at: Completed 02-03-PLAN.md — 2 tasks done, practice exam live at /exam with 22 MCQs and AI explanations.
+Last session: 2026-02-28T19:47Z
+Stopped at: Completed 03-01-PLAN.md — 2 tasks done, progress dashboard live at /progress.
 
 ### Next steps
 
-1. Phase 2 plans 01-03 complete. Check for any remaining Phase 2 plans or advance to Phase 3.
+1. Phase 3, Plan 1 complete. Execute Phase 3 remaining plans (streaming AI chat).
 2. Past exam question sources blocker resolved: 22 TOLC-B/TOLC-F style MCQs seeded directly — no external PDFs required for v1.

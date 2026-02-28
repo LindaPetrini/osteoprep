@@ -42,8 +42,8 @@
 
 ### Progress
 
-- [ ] **PROG-01**: User can view a dashboard showing completed topics, quiz scores per subject, and SRS card counts (due today, learned, new)
-- [ ] **PROG-02**: Each topic shows completion status (not started / reading / quiz passed)
+- [x] **PROG-01**: User can view a dashboard showing completed topics, quiz scores per subject, and SRS card counts (due today, learned, new)
+- [x] **PROG-02**: Each topic shows completion status (not started / reading / quiz passed)
 - [x] **PROG-03**: Progress data persists across sessions (server-side SQLite storage)
 
 ## v2 Requirements
@@ -108,8 +108,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHAT-02 | Phase 3 | Pending |
 | CHAT-03 | Phase 3 | Pending |
 | CHAT-04 | Phase 3 | Pending |
-| PROG-01 | Phase 3 | Pending |
-| PROG-02 | Phase 3 | Pending |
+| PROG-01 | Phase 3 | Complete |
+| PROG-02 | Phase 3 | Complete |
 | PROG-03 | Phase 1 | Complete (01-01) |
 
 **Coverage:**
