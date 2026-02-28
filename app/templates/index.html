@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}OsteoPrep - Home{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Argomenti di Studio</h1>
+{% for subject in subjects %}
+<div class="collapse collapse-arrow bg-base-100 border border-base-300 mb-2">
+  <input type="checkbox" name="subject-{{ subject }}" />
+  <div class="collapse-title text-lg font-semibold capitalize">{{ subject }}</div>
+  <div class="collapse-content"
+       hx-get="/subjects/{{ subject }}/topics"
+       hx-trigger="revealed"
+       hx-swap="innerHTML">
+    <span class="loading loading-spinner loading-sm"></span>
+  </div>
+</div>
+{% else %}
+<p class="text-base-content/60">Nessun argomento trovato. Esegui seed_topics.py per popolare il database.</p>
+{% endfor %}
+{% endblock %}

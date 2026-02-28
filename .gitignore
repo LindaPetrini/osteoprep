@@ -1,5 +1,8 @@
 .env
-node_modules/
+.venv/
+data/osteoprep.db
 __pycache__/
 *.pyc
+.pytest_cache/
+node_modules/
 .DS_Store
