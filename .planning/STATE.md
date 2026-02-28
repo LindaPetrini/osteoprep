@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 3 of 4 (Progress and AI Chat)
-Plan: 2 of 2 complete
-Status: Phase 3 complete — 03-01 and 03-02 done
-Last activity: 2026-02-28 — Completed 03-02 (SSE streaming AI chat panel on all topic pages, word-by-word Claude responses)
+Phase: 4 of 4 (Coverage Completion and Mobile Polish)
+Plan: 1 of 2 complete
+Status: Phase 4 in progress — 04-01 done
+Last activity: 2026-02-28 — Completed 04-01 (39 topics seeded, mitocondri orphan fixed, iPhone Safari mobile polish applied)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -87,6 +87,9 @@ Recent decisions affecting current work:
 - [03-02]: Newlines escaped server-side (\n -> \\n) and unescaped client-side to protect SSE frame delimiter
 - [03-02]: Progress context in system prompt is best-effort (try/except) — chat never breaks on DB errors
 - [03-02]: GeneratorExit caught in stream_chat_generator — abandoned streams close via async context manager
+- [04-01]: physics subject string covers both physics and math topics — maps to Fisica e Matematica accordion in index.html without template changes
+- [04-01]: prose-sm removed entirely (not just overridden) — prose alone gives 16px, prose-sm forces 14px triggering iOS Safari auto-zoom
+- [04-01]: Inline style min-height: 44px enforces tap targets on pre-compiled DaisyUI — Tailwind JIT classes like min-h-[44px] are purged and have no effect
 
 ### Pending Todos
 
@@ -100,10 +103,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T19:53Z
-Stopped at: Completed 03-02-PLAN.md — streaming AI chat live on all topic pages.
+Last session: 2026-02-28T20:11Z
+Stopped at: Completed 04-01-PLAN.md — 39 topics seeded (mitocondri orphan fixed, physics subject added), iPhone Safari mobile polish applied.
 
 ### Next steps
 
-1. Phase 3 complete. Advance to Phase 4.
+1. Execute 04-02 (mobile polish phase 2 / remaining phase 4 plans).
 2. Past exam question sources blocker resolved: 22 TOLC-B/TOLC-F style MCQs seeded directly — no external PDFs required for v1.
