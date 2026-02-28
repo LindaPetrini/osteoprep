@@ -62,6 +62,24 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28T15:30:08Z
-Stopped at: Completed 01-01-PLAN.md
-Resume file: None
+Last session: 2026-02-28T16:22Z
+Stopped at: Post-Phase-1 cleanup session. Phase 1 code complete. Making UI + pre-generation improvements outside GSD plan.
+Resume file: .planning/phases/01-foundation-and-content-pipeline/.continue-here.md
+
+### Current work in progress (outside GSD plan)
+
+**Problem 1 — Tailwind purged CSS**: The static `tailwind.min.css` only contains classes present when it was first built. New Tailwind classes don't take effect. **Fix**: use inline styles instead of Tailwind classes for layout changes.
+
+**Problem 2 — Long line width**: Content was spanning too wide. **Fix**: Changed base.html container to `style="max-width: 560px; margin: 0 auto; padding: 1rem 1.5rem;"` (inline style bypasses purged CSS issue). Also updated topic.html sticky header negative margins to match.
+
+**Problem 3 — Topics generate on first visit only**: 17 of 20 topics still have no content. **Fix**: Added `_bulk_generate()` async task in main.py `lifespan()` — runs on startup, generates all missing topics in parallel (semaphore=5). Service restarted at 16:22, generation in progress.
+
+**Files changed this session:**
+- `app/templates/base.html` — inline style for narrow centered column
+- `app/templates/topic.html` — sticky header margin fix
+- `app/main.py` — bulk generation on startup
+
+**Next after this session:**
+- Verify bulk generation ran (check DB: 20/20 topics generated)
+- Close Phase 1 GSD checkpoint: `/gsd:execute-phase 1` → type "approved"
+- Plan Phase 2: FSRS flashcards, quizzes, past exam questions
