@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app.database import AsyncSessionLocal, engine, Base
 from app.models import Topic
-from app.routers import pages, fragments, review, quiz, exam
+from app.routers import pages, fragments, review, quiz, exam, progress
 from app.services.claude import generate_explainer
 from app.templates_config import templates
 
@@ -65,6 +65,7 @@ app.include_router(fragments.router)
 app.include_router(review.router)
 app.include_router(quiz.router)
 app.include_router(exam.router)
+app.include_router(progress.router)
 
 # Expose templates on app.state for access from other modules if needed
 app.state.templates = templates
