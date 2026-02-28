@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation and Content Pipeline** - Bilingual schema, AI explainer generation with caching, mobile base UI, topic browsing
 - [x] **Phase 2: Active Learning** - FSRS flashcards (7-day cap), topic quizzes, past exam question bank (completed 2026-02-28)
 - [x] **Phase 3: Progress and AI Chat** - Study dashboard, streaming chat with topic context injection (completed 2026-02-28)
-- [ ] **Phase 4: Coverage Completion and Mobile Polish** - All MUR exam topics covered, iPhone Safari validated
+- [x] **Phase 4: Coverage Completion and Mobile Polish** - All MUR exam topics covered, iPhone Safari validated (completed 2026-02-28)
 
 ## Phase Details
 
@@ -92,4 +92,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation and Content Pipeline | 2/2 | Complete   | 2026-02-28 |
 | 2. Active Learning | 3/3 | Complete   | 2026-02-28 |
 | 3. Progress and AI Chat | 2/2 | Complete   | 2026-02-28 |
-| 4. Coverage Completion and Mobile Polish | 1/2 | In Progress|  |
+| 4. Coverage Completion and Mobile Polish | 2/2 | Complete   | 2026-02-28 |

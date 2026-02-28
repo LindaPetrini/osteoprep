@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T19:55:41.321Z"
+last_updated: "2026-02-28T20:20:10.505Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 3 complete — progress dashboard at /progress and streaming AI chat on topic pages both live
+**Current focus:** Phase 4 complete — 231 Italian MCQs seeded across all 40 topics; every /topic/{slug}/quiz endpoint works
 
 ## Current Position
 
 Phase: 4 of 4 (Coverage Completion and Mobile Polish)
-Plan: 1 of 2 complete
-Status: Phase 4 in progress — 04-01 done
-Last activity: 2026-02-28 — Completed 04-01 (39 topics seeded, mitocondri orphan fixed, iPhone Safari mobile polish applied)
+Plan: 2 of 2 complete
+Status: Phase 4 complete — all plans done
+Last activity: 2026-02-28 — Completed 04-02 (231 Italian MCQs seeded; all 40 topics have >= 5 questions)
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 22 min
-- Total execution time: 0.7 hours
+- Total plans completed: 9
+- Average duration: ~10 min
+- Total execution time: ~1.5 hours
 
 **By Phase:**
 
@@ -43,9 +43,10 @@ Progress: [█████████░] 90%
 | 1. Foundation | 2/2 | 44 min | 22 min |
 | 2. Active Learning | 3/3 | 12 min | 4 min |
 | 3. Progress and AI Chat | 2/2 | 5 min | 3 min |
+| 4. Coverage and Polish | 2/2 | 15 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (40 min), 02-01 (5 min), 02-02 (2 min), 02-03 (5 min), 03-01 (2 min)
+- Last 5 plans: 02-02 (2 min), 02-03 (5 min), 03-01 (2 min), 04-01 (7 min), 04-02 (8 min)
 - Trend: fast execution on DB + UI tasks
 
 *Updated after each plan completion*
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [04-01]: physics subject string covers both physics and math topics — maps to Fisica e Matematica accordion in index.html without template changes
 - [04-01]: prose-sm removed entirely (not just overridden) — prose alone gives 16px, prose-sm forces 14px triggering iOS Safari auto-zoom
 - [04-01]: Inline style min-height: 44px enforces tap targets on pre-compiled DaisyUI — Tailwind JIT classes like min-h-[44px] are purged and have no effect
+- [Phase 04-02]: cellula-eucariotica (0 questions before plan) covered via Rule 2 — added 6 questions so /quiz endpoint works for all 40 topics
+- [Phase 04-02]: 5-8 questions per topic (not exactly 5) to allow quiz variety on repeat attempts via random sampling
 
 ### Pending Todos
 
@@ -103,10 +106,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T20:11Z
-Stopped at: Completed 04-01-PLAN.md — 39 topics seeded (mitocondri orphan fixed, physics subject added), iPhone Safari mobile polish applied.
+Last session: 2026-02-28T20:19Z
+Stopped at: Completed 04-02-PLAN.md — 231 Italian MCQs seeded across all 40 topics; Phase 4 and full roadmap complete.
 
 ### Next steps
 
-1. Execute 04-02 (mobile polish phase 2 / remaining phase 4 plans).
-2. Past exam question sources blocker resolved: 22 TOLC-B/TOLC-F style MCQs seeded directly — no external PDFs required for v1.
+All phases complete. App is ready for exam use:
+- 40 topics with study notes, SRS flashcard review, quizzes, and exams
+- 231 quiz questions in Italian (5-8 per topic)
+- Mobile-polished for iPhone Safari
+- Progress dashboard and streaming AI chat live
