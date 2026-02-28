@@ -20,10 +20,10 @@
         <!-- Input form — submits via JS, opens EventSource GET to /chat/stream -->
         <form id="chat-form" onsubmit="startChatStream(event, '{{ topic.slug }}')">
           <input type="text" id="chat-input" name="question"
-                 class="input input-bordered input-sm w-full"
+                 class="input input-bordered w-full"
                  placeholder="Fai una domanda..."
                  autocomplete="off"
-                 style="margin-bottom: 0.5rem;">
+                 style="margin-bottom: 0.5rem; min-height: 44px;">
           <button type="submit" class="btn btn-primary btn-sm w-full" style="min-height: 44px;">
             Invia
           </button>

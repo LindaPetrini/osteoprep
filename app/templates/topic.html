@@ -21,6 +21,7 @@
     <div class="join flex-shrink-0">
       <button
         class="join-item btn btn-sm min-h-[44px] {% if lang == 'it' %}btn-primary{% else %}btn-ghost{% endif %}"
+        style="min-height: 44px;"
         hx-get="/topic/{{ topic.slug }}/content?lang=it"
         hx-target="#explainer-content"
         hx-swap="innerHTML"
@@ -29,6 +30,7 @@
       </button>
       <button
         class="join-item btn btn-sm min-h-[44px] {% if lang == 'en' %}btn-primary{% else %}btn-ghost{% endif %}"
+        style="min-height: 44px;"
         hx-get="/topic/{{ topic.slug }}/content?lang=en"
         hx-target="#explainer-content"
         hx-swap="innerHTML"
