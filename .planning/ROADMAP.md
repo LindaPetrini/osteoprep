@@ -29,11 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can toggle between Italian and English versions of any explainer without losing their place
   4. Explainers include explicit uncertainty markers where AI confidence is low (no fabricated facts stated as certain)
   5. Progress data (SRS state, quiz scores, completed sections) survives a server restart
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Project scaffold, SQLite schema with bilingual columns, Alembic migrations, Nginx/Uvicorn setup
-- [ ] 01-02: Topic list UI, subject groupings, AI explainer generation + caching, language toggle
+- [ ] 01-01-PLAN.md — Project scaffold, SQLite schema with bilingual columns, Alembic migrations, Nginx/Uvicorn/systemd setup
+- [ ] 01-02-PLAN.md — Topic browsing UI, subject accordions, AI explainer generation + caching, language toggle, uncertainty markers
 
 ### Phase 2: Active Learning
 **Goal**: User can reinforce knowledge through FSRS flashcard reviews, topic quizzes with explanations, and practice with real past exam questions
