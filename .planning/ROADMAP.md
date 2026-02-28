@@ -76,11 +76,11 @@ Plans:
   1. Every topic area from the official MUR professioni sanitarie curriculum (Biology, Chemistry, Physics/Math basics) has an AI-generated explainer and at least one quiz available
   2. All interactive elements (flashcard flip, quiz submission, chat input, language toggle) work correctly on iPhone Safari without layout breakage
   3. All tap targets are at minimum 44px and body text is at minimum 16px (readable without zoom on iPhone)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: MUR curriculum checklist seeded to DB, generate explainers + quizzes for all uncovered topics, Physics/Math basic coverage
-- [ ] 04-02: iPhone Safari audit (tap targets, font sizes, layout), fix any mobile breakage found
+- [ ] 04-01-PLAN.md — Seed all missing topics (mitocondri fix, anatomy/physiology biology, extra chemistry, full physics/math set); fix 3 iPhone Safari mobile issues (prose font size, chat input tap target, language toggle inline style)
+- [ ] 04-02-PLAN.md — Seed quiz questions for all 14 previously-uncovered biology/chemistry topics and all 10 new physics/math topics
 
 ## Progress
 
