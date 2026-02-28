@@ -12,7 +12,7 @@ OsteoPrep delivers four phases under a 3-week hard deadline. Phase 1 establishes
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation and Content Pipeline** - Bilingual schema, AI explainer generation with caching, mobile base UI, topic browsing
+- [x] **Phase 1: Foundation and Content Pipeline** - Bilingual schema, AI explainer generation with caching, mobile base UI, topic browsing
 - [ ] **Phase 2: Active Learning** - FSRS flashcards (7-day cap), topic quizzes, past exam question bank
 - [ ] **Phase 3: Progress and AI Chat** - Study dashboard, streaming chat with topic context injection
 - [ ] **Phase 4: Coverage Completion and Mobile Polish** - All MUR exam topics covered, iPhone Safari validated
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Project scaffold, SQLite schema with bilingual columns, Alembic migrations, Nginx/Uvicorn/systemd setup
-- [ ] 01-02-PLAN.md — Topic browsing UI, subject accordions, AI explainer generation + caching, language toggle, uncertainty markers
+- [x] 01-02-PLAN.md — Topic browsing UI, subject accordions, AI explainer generation + caching, language toggle, uncertainty markers
 
 ### Phase 2: Active Learning
 **Goal**: User can reinforce knowledge through FSRS flashcard reviews, topic quizzes with explanations, and practice with real past exam questions
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Content Pipeline | 1/2 | In progress | - |
+| 1. Foundation and Content Pipeline | 2/2 | Complete (checkpoint pending) | 2026-02-28 |
 | 2. Active Learning | 0/3 | Not started | - |
 | 3. Progress and AI Chat | 0/2 | Not started | - |
 | 4. Coverage Completion and Mobile Polish | 0/2 | Not started | - |

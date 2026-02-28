@@ -8,9 +8,9 @@
 ### Content
 
 - [x] **CONT-01**: User can browse study topics organized by subject (Biology, Chemistry, Physics/Math, Logic)
-- [ ] **CONT-02**: User can read an AI-generated explainer for each topic, generated on first access and cached in the database
-- [ ] **CONT-03**: User can toggle between Italian and English versions of any explainer
-- [ ] **CONT-04**: Explainers include hallucination mitigation (AI expresses uncertainty where appropriate, links to authoritative sources where possible)
+- [x] **CONT-02**: User can read an AI-generated explainer for each topic, generated on first access and cached in the database
+- [x] **CONT-03**: User can toggle between Italian and English versions of any explainer
+- [x] **CONT-04**: Explainers include hallucination mitigation (AI expresses uncertainty where appropriate, links to authoritative sources where possible)
 
 ### Quizzes
 
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CONT-01 | Phase 1 | Complete (01-01) |
-| CONT-02 | Phase 1 | Pending |
-| CONT-03 | Phase 1 | Pending |
-| CONT-04 | Phase 1 | Pending |
+| CONT-02 | Phase 1 | Complete (01-02) |
+| CONT-03 | Phase 1 | Complete (01-02) |
+| CONT-04 | Phase 1 | Complete (01-02) |
 | QUIZ-01 | Phase 2 | Pending |
 | QUIZ-02 | Phase 2 | Pending |
 | QUIZ-03 | Phase 2 | Pending |
