@@ -48,7 +48,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: FSRS engine integration (py-fsrs, 7-day interval cap), flashcard schema, card review UI (flip, 4-button rating)
+- [x] 02-01: FSRS engine integration (py-fsrs, 7-day interval cap), flashcard schema, card review UI (flip, 4-button rating)
 - [ ] 02-02: AI-generated topic quiz questions, correct/incorrect feedback UI, quiz score persistence
 - [ ] 02-03: Past exam question import, timed practice test UI, per-question result persistence
 
@@ -90,6 +90,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation and Content Pipeline | 2/2 | Complete   | 2026-02-28 |
-| 2. Active Learning | 0/3 | Not started | - |
+| 2. Active Learning | 1/3 | In progress | - |
 | 3. Progress and AI Chat | 0/2 | Not started | - |
 | 4. Coverage Completion and Mobile Polish | 0/2 | Not started | - |

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-28T16:59:31.870Z"
+status: in-progress
+last_updated: "2026-02-28T17:35:00Z"
 progress:
-  total_phases: 1
+  total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 6
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 1 complete — ready for Phase 2
+**Current focus:** Phase 2, Plan 1 complete — FSRS flashcard review working
 
 ## Current Position
 
-Phase: 1 of 4 (Foundation and Content Pipeline) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 1 complete — ready for Phase 2
-Last activity: 2026-02-28 — Completed 01-02 human-verify checkpoint (approved on device)
+Phase: 2 of 4 (Active Learning)
+Plan: 1 of N complete
+Status: Phase 2 in progress — 02-01 done, ready for 02-02
+Last activity: 2026-02-28 — Completed 02-01 (FSRS flashcard review + Phase 2 DB schema)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [███░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -41,10 +41,11 @@ Progress: [██░░░░░░░░] 25%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 44 min | 22 min |
+| 2. Active Learning | 1/N | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (40 min)
-- Trend: -
+- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min)
+- Trend: fast execution on DB + UI tasks
 
 *Updated after each plan completion*
 
@@ -67,6 +68,10 @@ Recent decisions affecting current work:
 - [01-02]: Non-blocking background generation (BackgroundTasks + HTMX polling every 2s) — page responds immediately
 - [01-02]: Schematic study note format with mandatory sections — denser, exam-focused content
 - [01-02]: Bulk startup generation via lifespan() with asyncio.Semaphore(5) — pre-warms all 20 topics
+- [02-01]: Session state (session_ids, current_index, total) passed as GET query params to card_back, then embedded as hidden form fields — avoids relying on request.query_params in templates
+- [02-01]: card_front and card_back fragments own their #card-container wrapper; review.html uses {% include %} without extra wrapper to avoid double-nesting with HTMX outerHTML swap
+- [02-01]: maximum_interval=7 is a direct Scheduler attribute in py-fsrs 6.3.0, not scheduler.parameters.maximum_interval (parameters is a tuple of floats)
+- [02-01]: due_count guard in base.html uses "is defined" check to handle routes that do not yet pass the context variable
 
 ### Pending Todos
 
@@ -80,10 +85,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T17:00Z
-Stopped at: Completed 01-02-PLAN.md — all 3 tasks done, human-verify approved.
+Last session: 2026-02-28T17:35Z
+Stopped at: Completed 02-01-PLAN.md — 2 tasks done, FSRS review session live at /review.
 
 ### Next steps
 
-1. Begin Phase 2: Spaced Repetition (FSRS flashcard engine)
+1. Continue Phase 2: Plan 02-02 (quiz mode using quiz_questions table)
 2. Note blocker: identify past exam question source PDFs (Italian MUR or Alpha Test) before Phase 2 questions import task

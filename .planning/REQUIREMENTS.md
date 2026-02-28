@@ -21,10 +21,10 @@
 
 ### Flashcards
 
-- [ ] **CARD-01**: User can study flashcards for nomenclature (cell parts, chemical compounds, anatomical terms) using spaced repetition
-- [ ] **CARD-02**: SRS uses FSRS-5 algorithm with review intervals capped at 7 days (to keep reviews within exam study window)
-- [ ] **CARD-03**: User rates each card (Again / Hard / Good / Easy) and cards are rescheduled accordingly
-- [ ] **CARD-04**: SRS state (due date, stability, difficulty) persists across server restarts
+- [x] **CARD-01**: User can study flashcards for nomenclature (cell parts, chemical compounds, anatomical terms) using spaced repetition
+- [x] **CARD-02**: SRS uses FSRS-5 algorithm with review intervals capped at 7 days (to keep reviews within exam study window)
+- [x] **CARD-03**: User rates each card (Again / Hard / Good / Easy) and cards are rescheduled accordingly
+- [x] **CARD-04**: SRS state (due date, stability, difficulty) persists across server restarts
 
 ### Past Exam Questions
 
@@ -96,10 +96,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUIZ-02 | Phase 2 | Pending |
 | QUIZ-03 | Phase 2 | Pending |
 | QUIZ-04 | Phase 2 | Pending |
-| CARD-01 | Phase 2 | Pending |
-| CARD-02 | Phase 2 | Pending |
-| CARD-03 | Phase 2 | Pending |
-| CARD-04 | Phase 2 | Pending |
+| CARD-01 | Phase 2 | Complete (02-01) |
+| CARD-02 | Phase 2 | Complete (02-01) |
+| CARD-03 | Phase 2 | Complete (02-01) |
+| CARD-04 | Phase 2 | Complete (02-01) |
 | EXAM-01 | Phase 2 | Pending |
 | EXAM-02 | Phase 2 | Pending |
 | EXAM-03 | Phase 2 | Pending |
