@@ -28,10 +28,10 @@
 
 ### Past Exam Questions
 
-- [ ] **EXAM-01**: User can access a bank of past exam questions from Italian medicina and professioni sanitarie entry tests
-- [ ] **EXAM-02**: User can take a timed practice test from the question bank
-- [ ] **EXAM-03**: After answering, user sees correct answer with AI-generated explanation of why it is correct and why each wrong option is wrong
-- [ ] **EXAM-04**: User's practice test history and per-question results are saved
+- [x] **EXAM-01**: User can access a bank of past exam questions from Italian medicina and professioni sanitarie entry tests
+- [x] **EXAM-02**: User can take a timed practice test from the question bank
+- [x] **EXAM-03**: After answering, user sees correct answer with AI-generated explanation of why it is correct and why each wrong option is wrong
+- [x] **EXAM-04**: User's practice test history and per-question results are saved
 
 ### AI Chat
 
@@ -100,10 +100,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CARD-02 | Phase 2 | Complete (02-01) |
 | CARD-03 | Phase 2 | Complete (02-01) |
 | CARD-04 | Phase 2 | Complete (02-01) |
-| EXAM-01 | Phase 2 | Pending |
-| EXAM-02 | Phase 2 | Pending |
-| EXAM-03 | Phase 2 | Pending |
-| EXAM-04 | Phase 2 | Pending |
+| EXAM-01 | Phase 2 | Complete |
+| EXAM-02 | Phase 2 | Complete |
+| EXAM-03 | Phase 2 | Complete |
+| EXAM-04 | Phase 2 | Complete |
 | CHAT-01 | Phase 3 | Pending |
 | CHAT-02 | Phase 3 | Pending |
 | CHAT-03 | Phase 3 | Pending |

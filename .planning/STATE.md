@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T18:01:00Z"
+last_updated: "2026-02-28T18:03:19Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 2, Plan 2 complete — topic quiz feature live at /topic/{slug}/quiz
+**Current focus:** Phase 2, Plan 3 complete — timed practice exam live at /exam with AI explanations
 
 ## Current Position
 
 Phase: 2 of 4 (Active Learning)
-Plan: 2 of N complete
-Status: Phase 2 in progress — 02-01 and 02-02 done
-Last activity: 2026-02-28 — Completed 02-02 (topic quiz with MCQs, AI explanations, score history)
+Plan: 3 of N complete
+Status: Phase 2 in progress — 02-01, 02-02, 02-03 done
+Last activity: 2026-02-28 — Completed 02-03 (timed practice exam, countdown timer, per-question AI explanations)
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -41,10 +41,10 @@ Progress: [████░░░░░░] 40%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 44 min | 22 min |
-| 2. Active Learning | 2/N | 7 min | 3.5 min |
+| 2. Active Learning | 3/N | 12 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min), 02-02 (2 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min), 02-02 (2 min), 02-03 (5 min)
 - Trend: fast execution on DB + UI tasks
 
 *Updated after each plan completion*
@@ -76,6 +76,9 @@ Recent decisions affecting current work:
 - [02-02]: answer_{question_id} form field naming — maps cleanly to DB question IDs regardless of display order
 - [02-02]: QuizAttempt saved before fetching score history so results page includes current attempt
 - [02-02]: generate-once-cache: explanation_json IS NULL check in router, db.flush() persists immediately, never regenerate
+- [02-03]: start_time_epoch embedded server-side in form data-start-time; JS computes remaining = startTime + duration - Date.now()/1000 for drift-free countdown
+- [02-03]: htmx.trigger(form, 'submit') used for timer auto-submit — bypasses neither HTMX nor hx-push-url; form.submit() would
+- [02-03]: Hidden question_ids field in exam form — POST handler processes all questions (including unanswered) regardless of radio button state
 
 ### Pending Todos
 
@@ -89,10 +92,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T18:01Z
-Stopped at: Completed 02-02-PLAN.md — 2 tasks done, topic quiz live at /topic/{slug}/quiz.
+Last session: 2026-02-28T18:03Z
+Stopped at: Completed 02-03-PLAN.md — 2 tasks done, practice exam live at /exam with 22 MCQs and AI explanations.
 
 ### Next steps
 
-1. Continue Phase 2: Plan 02-03 if exists (exam questions feature using exam_questions table)
-2. Note blocker: identify past exam question source PDFs (Italian MUR or Alpha Test) before Phase 2 questions import task
+1. Phase 2 plans 01-03 complete. Check for any remaining Phase 2 plans or advance to Phase 3.
+2. Past exam question sources blocker resolved: 22 TOLC-B/TOLC-F style MCQs seeded directly — no external PDFs required for v1.
