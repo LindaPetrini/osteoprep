@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}OsteoPrep - Progressi{% endblock %}
+{% block content %}
+
+<div style="margin-bottom: 1.5rem;">
+  <h1 class="text-2xl font-bold text-base-content">Progressi</h1>
+  <p class="text-base-content/60 text-sm" style="margin-top: 0.25rem;">Il tuo avanzamento nello studio</p>
+</div>
+
+<!-- SRS stats row -->
+<div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+  <div class="stat bg-base-100 rounded-xl border border-base-300" style="flex: 1; padding: 1rem 0.75rem;">
+    <div class="stat-title" style="font-size: 0.7rem;">In scadenza oggi</div>
+    <div class="stat-value text-warning" style="font-size: 1.75rem; line-height: 1.2;">{{ srs.due }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-xl border border-base-300" style="flex: 1; padding: 1rem 0.75rem;">
+    <div class="stat-title" style="font-size: 0.7rem;">Apprese</div>
+    <div class="stat-value text-success" style="font-size: 1.75rem; line-height: 1.2;">{{ srs.learned }}</div>
+  </div>
+  <div class="stat bg-base-100 rounded-xl border border-base-300" style="flex: 1; padding: 1rem 0.75rem;">
+    <div class="stat-title" style="font-size: 0.7rem;">Nuove</div>
+    <div class="stat-value text-info" style="font-size: 1.75rem; line-height: 1.2;">{{ srs.new }}</div>
+  </div>
+</div>
+
+<!-- Per-subject section -->
+<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+  {% for row in topics_by_subject %}
+  {% set subject_name %}
+    {% if row.subject == "biology" %}Biologia
+    {% elif row.subject == "chemistry" %}Chimica
+    {% elif row.subject == "physics" %}Fisica e Matematica
+    {% elif row.subject == "logic" %}Logica
+    {% else %}{{ row.subject }}
+    {% endif %}
+  {% endset %}
+  {% set quiz_row = quiz_by_subject.get(row.subject) %}
+  <div class="card bg-base-100 border border-base-300" style="border-radius: 0.75rem;">
+    <div class="card-body" style="padding: 1rem 1.25rem;">
+      <h3 class="card-title text-base" style="margin-bottom: 0.5rem;">{{ subject_name | trim }}</h3>
+      <div style="display: flex; gap: 1.5rem;">
+        <div>
+          <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">Argomenti</div>
+          <div class="text-base-content font-semibold">{{ row.generated }}<span class="text-base-content/40 font-normal">/{{ row.total }}</span></div>
+        </div>
+        <div>
+          <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">Accuratezza quiz</div>
+          {% if quiz_row and quiz_row.attempts and quiz_row.avg_accuracy is not none %}
+          <div class="text-base-content font-semibold">{{ (quiz_row.avg_accuracy * 100) | round | int }}%</div>
+          {% else %}
+          <div class="text-base-content/40">—</div>
+          {% endif %}
+        </div>
+        {% if quiz_row %}
+        <div>
+          <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">Quiz svolti</div>
+          <div class="text-base-content font-semibold">{{ quiz_row.attempts }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-base-content/40 text-sm text-center py-4">Nessun argomento trovato.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

@@ -5,8 +5,13 @@
     <a href="/topic/{{ topic.slug }}"
        class="min-h-[44px] flex items-center text-sm text-base-content hover:bg-base-200 rounded-lg px-3">
       {{ topic.title_it }}
-      {% if topic.content_it %}
-      <span class="badge badge-success badge-xs ml-auto">Pronto</span>
+      {% set best = best_scores.get(topic.slug, 0) or 0 %}
+      {% if best >= 0.6 %}
+      <span class="badge badge-success badge-xs ml-auto">Completato</span>
+      {% elif topic.content_it %}
+      <span class="badge badge-warning badge-xs ml-auto">In corso</span>
+      {% else %}
+      <span class="badge badge-ghost badge-xs ml-auto">Non iniziato</span>
       {% endif %}
     </a>
   </li>
