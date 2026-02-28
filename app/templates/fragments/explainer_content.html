@@ -1,0 +1,12 @@
+{% set content = topic.content_it if lang == "it" else topic.content_en %}
+
+{% if content %}
+<div class="prose prose-sm max-w-none text-base-content leading-relaxed">
+  {{ content | uncertainty | safe }}
+</div>
+{% else %}
+<div class="flex flex-col items-center py-8 gap-2">
+  <span class="loading loading-spinner loading-lg text-primary"></span>
+  <p class="text-base-content/60 text-sm">Generazione in corso...</p>
+</div>
+{% endif %}

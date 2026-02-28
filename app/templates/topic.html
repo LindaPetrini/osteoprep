@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title_it }} - OsteoPrep{% endblock %}
+
+{% block content %}
+
+{# Sticky header — iPhone Safari: no overflow on ancestor elements #}
+<div class="sticky top-0 z-10 bg-base-100 border-b border-base-300 py-3 -mx-4 px-4 mb-4">
+  <div class="flex items-center justify-between gap-2">
+    {# Back link #}
+    <a href="/" class="btn btn-ghost btn-sm min-h-[44px] px-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+
+    {# Topic title (truncated on small screens) #}
+    <h1 class="text-sm font-semibold text-base-content flex-1 truncate">
+      {% if lang == "it" %}{{ topic.title_it }}{% else %}{{ topic.title_en }}{% endif %}
+    </h1>
+
+    {# IT | EN segmented control — LOCKED DECISION: segmented control in sticky header #}
+    <div class="join">
+      <button
+        class="join-item btn btn-sm min-h-[44px] {% if lang == 'it' %}btn-primary{% else %}btn-ghost{% endif %}"
+        hx-get="/topic/{{ topic.slug }}/content?lang=it"
+        hx-target="#explainer-content"
+        hx-swap="innerHTML"
+        hx-indicator="#loading-indicator"
+        onclick="localStorage.setItem('lang', 'it')">
+        IT
+      </button>
+      <button
+        class="join-item btn btn-sm min-h-[44px] {% if lang == 'en' %}btn-primary{% else %}btn-ghost{% endif %}"
+        hx-get="/topic/{{ topic.slug }}/content?lang=en"
+        hx-target="#explainer-content"
+        hx-swap="innerHTML"
+        hx-indicator="#loading-indicator"
+        onclick="localStorage.setItem('lang', 'en')">
+        EN
+      </button>
+    </div>
+  </div>
+</div>
+
+{# Loading indicator — shows while HTMX request is in flight #}
+<div id="loading-indicator" class="htmx-indicator flex justify-center py-4">
+  <span class="loading loading-spinner loading-md text-primary"></span>
+</div>
+
+{# Generation error state (shown if Claude API failed) #}
+{% if generation_error %}
+<div class="alert alert-error mb-4">
+  <span>{{ generation_error }}</span>
+</div>
+{% endif %}
+
+{# Main content area — HTMX swaps innerHTML of this div on language toggle #}
+<div id="explainer-content">
+  {% include "fragments/explainer_content.html" %}
+</div>
+
+{% endblock %}
