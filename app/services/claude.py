@@ -100,3 +100,85 @@ async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
 
     logger.error(f"Failed to parse response for '{title_it}'. Raw[:300]: {raw[:300]}")
     raise ValueError(f"Unexpected response format for '{title_it}'")
+
+
+QUIZ_EXPLANATION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, osteopatia).
+
+Per una domanda a risposta multipla fornisci spiegazioni brevi e chiare IN ITALIANO.
+
+REGOLE:
+- Tutte le spiegazioni DEVONO essere in italiano
+- Sii conciso: 2-3 frasi per la risposta corretta, 1-2 frasi per ogni risposta sbagliata
+- Spiega il perché scientifico, non solo "è sbagliata perché..."
+- Non usare "Risposta corretta:" o "Risposta sbagliata:" come intestazioni
+
+OUTPUT FORMAT — usa questi tag XML esatti, nient'altro:
+<CORRECT>
+[Perché questa risposta è corretta — 2-3 frasi in italiano]
+</CORRECT>
+<WRONG_0>
+[Perché la prima risposta sbagliata è errata — 1-2 frasi in italiano]
+</WRONG_0>
+<WRONG_1>
+[Perché la seconda risposta sbagliata è errata — 1-2 frasi in italiano]
+</WRONG_1>
+<WRONG_2>
+[Perché la terza risposta sbagliata è errata — 1-2 frasi in italiano]
+</WRONG_2>"""
+
+
+async def generate_quiz_explanation(
+    question_it: str,
+    choices: list[str],
+    correct_index: int,
+) -> dict[str, str]:
+    """
+    Generate per-choice explanation for a quiz question.
+    Returns {"correct": "...", "wrong_0": "...", "wrong_1": "...", "wrong_2": "..."}
+    where wrong_N corresponds to the Nth incorrect choice (in original order, skipping correct).
+
+    IMPORTANT: Check explanation_json IS NULL in the DB before calling this.
+    Generate-once-cache pattern — never regenerate if explanation already exists.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+
+    client = AsyncAnthropic(api_key=api_key)
+
+    # Build user message listing all choices with labels
+    choice_labels = ["A", "B", "C", "D"]
+    choices_formatted = "\n".join(
+        f"  {choice_labels[i]}. {choice}" for i, choice in enumerate(choices)
+    )
+    correct_label = choice_labels[correct_index]
+    user_msg = (
+        f"Domanda: {question_it}\n\n"
+        f"Opzioni:\n{choices_formatted}\n\n"
+        f"Risposta corretta: {correct_label}. {choices[correct_index]}\n\n"
+        "Fornisci le spiegazioni per tutte le opzioni."
+    )
+
+    response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        system=QUIZ_EXPLANATION_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_msg}],
+    )
+    raw = response.content[0].text
+
+    correct_match = re.search(r"<CORRECT>\s*(.*?)\s*</CORRECT>", raw, re.DOTALL | re.IGNORECASE)
+    w0_match = re.search(r"<WRONG_0>\s*(.*?)\s*</WRONG_0>", raw, re.DOTALL | re.IGNORECASE)
+    w1_match = re.search(r"<WRONG_1>\s*(.*?)\s*</WRONG_1>", raw, re.DOTALL | re.IGNORECASE)
+    w2_match = re.search(r"<WRONG_2>\s*(.*?)\s*</WRONG_2>", raw, re.DOTALL | re.IGNORECASE)
+
+    if not all([correct_match, w0_match, w1_match, w2_match]):
+        logger.error(f"Quiz explanation parse failed. Raw[:300]: {raw[:300]}")
+        raise ValueError("Unexpected response format for quiz explanation")
+
+    return {
+        "correct": correct_match.group(1).strip(),
+        "wrong_0": w0_match.group(1).strip(),
+        "wrong_1": w1_match.group(1).strip(),
+        "wrong_2": w2_match.group(1).strip(),
+    }
