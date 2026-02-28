@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Content Pipeline | 2/2 | Complete (checkpoint pending) | 2026-02-28 |
+| 1. Foundation and Content Pipeline | 2/2 | Complete   | 2026-02-28 |
 | 2. Active Learning | 0/3 | Not started | - |
 | 3. Progress and AI Chat | 0/2 | Not started | - |
 | 4. Coverage Completion and Mobile Polish | 0/2 | Not started | - |

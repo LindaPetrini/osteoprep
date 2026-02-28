@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 1 of 4 (Foundation and Content Pipeline) — COMPLETE
-Plan: 2 of 2 complete (awaiting human-verify checkpoint)
-Status: Checkpoint — awaiting device verification
-Last activity: 2026-02-28 — Completed 01-02 (topic UI + AI content pipeline)
+Plan: 2 of 2 complete
+Status: Phase 1 complete — ready for Phase 2
+Last activity: 2026-02-28 — Completed 01-02 human-verify checkpoint (approved on device)
 
 Progress: [██░░░░░░░░] 25%
 
@@ -57,7 +57,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- Human device verification of Phase 1 UI (checkpoint:human-verify pending)
+- None
 
 ### Blockers/Concerns
 
@@ -67,11 +67,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T16:40Z
-Stopped at: 01-02-PLAN.md — checkpoint:human-verify (Task 3). All code complete, awaiting device verification.
+Last session: 2026-02-28T17:00Z
+Stopped at: Completed 01-02-PLAN.md — all 3 tasks done, human-verify approved.
 
 ### Next steps
 
-1. Visit http://91.98.143.115:8443 on iPhone Safari (or desktop browser)
-2. Verify: subject accordions expand, topic pages load, IT/EN toggle works, sticky header stays fixed, uncertainty markers appear as amber callout blocks
-3. Type "approved" to close the checkpoint and proceed to Phase 2 planning
+1. Begin Phase 2: Spaced Repetition (FSRS flashcard engine)
+2. Note blocker: identify past exam question source PDFs (Italian MUR or Alpha Test) before Phase 2 questions import task
