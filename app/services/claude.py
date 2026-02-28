@@ -262,3 +262,76 @@ async def generate_exam_explanation(
         "wrong_1": w1_match.group(1).strip(),
         "wrong_2": w2_match.group(1).strip(),
     }
+
+
+async def build_chat_system_prompt(topic_slug: str, db) -> str:
+    """Build context-aware system prompt for chat (CHAT-03 + CHAT-04)."""
+    from sqlalchemy import select
+    from app.models import Topic
+    from app.services.progress_service import get_progress_summary
+
+    parts = [
+        "Sei un assistente per la preparazione all'esame di professioni sanitarie e osteopatia.",
+        "Rispondi in italiano. Sii conciso e focalizzato sull'esame.",
+    ]
+
+    # CHAT-03: topic context
+    if topic_slug:
+        topic = await db.scalar(select(Topic).where(Topic.slug == topic_slug))
+        if topic:
+            parts.append(
+                f"\nL'utente sta studiando: '{topic.title_it}' ({topic.title_en})."
+                " Rispondi nel contesto di questo argomento."
+            )
+
+    # CHAT-04: progress context (compact — weak subjects + SRS state)
+    try:
+        summary = await get_progress_summary(db)
+        weak = [
+            s for s, q in summary["quiz_by_subject"].items()
+            if q.avg_accuracy is not None and q.avg_accuracy < 0.5
+        ]
+        if weak:
+            subject_names = {"biology": "Biologia", "chemistry": "Chimica",
+                             "physics": "Fisica/Matematica", "logic": "Logica"}
+            weak_it = [subject_names.get(s, s) for s in weak]
+            parts.append(f"\nArgomenti deboli dell'utente (quiz < 50%): {', '.join(weak_it)}.")
+        srs = summary["srs"]
+        parts.append(
+            f"\nStato ripasso: {srs['due']} carte in scadenza oggi, "
+            f"{srs['learned']} apprese, {srs['new']} nuove."
+        )
+    except Exception:
+        pass  # Progress context is best-effort — never break chat for a DB error
+
+    return "\n".join(parts)
+
+
+async def stream_chat_generator(question: str, system_prompt: str):
+    """
+    Async generator yielding SSE-formatted text chunks from Claude streaming.
+    Yields: "data: <escaped_chunk>\\n\\n" for each text token
+    Yields: "data: [DONE]\\n\\n" on completion
+    Handles GeneratorExit (client disconnect) cleanly.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        yield "data: [ERROR: ANTHROPIC_API_KEY not set]\n\n"
+        return
+
+    client = AsyncAnthropic(api_key=api_key)
+    try:
+        async with client.messages.stream(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": question}],
+        ) as stream:
+            async for text in stream.text_stream:
+                # Escape newlines — SSE uses \n\n as message delimiter
+                safe = text.replace("\n", "\\n")
+                yield f"data: {safe}\n\n"
+    except GeneratorExit:
+        pass  # Client disconnected — clean exit, context manager closes stream
+    finally:
+        yield "data: [DONE]\n\n"
