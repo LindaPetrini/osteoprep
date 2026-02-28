@@ -182,3 +182,83 @@ async def generate_quiz_explanation(
         "wrong_1": w1_match.group(1).strip(),
         "wrong_2": w2_match.group(1).strip(),
     }
+
+
+EXAM_EXPLANATION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, TOLC-B/TOLC-F).
+
+Per una domanda d'esame a risposta multipla fornisci spiegazioni chiare e didattiche IN ITALIANO.
+
+REGOLE:
+- Tutte le spiegazioni DEVONO essere in italiano
+- La risposta corretta: 2-3 frasi che spiegano il concetto scientifico sottostante
+- Le risposte sbagliate: 1-2 frasi che spiegano l'errore concettuale specifico
+- Usa terminologia tecnica corretta, come atteso in un esame universitario
+
+OUTPUT FORMAT — usa questi tag XML esatti, nient'altro:
+<CORRECT>
+[Perché questa è la risposta corretta — 2-3 frasi in italiano]
+</CORRECT>
+<WRONG_0>
+[Errore specifico della prima opzione sbagliata — 1-2 frasi in italiano]
+</WRONG_0>
+<WRONG_1>
+[Errore specifico della seconda opzione sbagliata — 1-2 frasi in italiano]
+</WRONG_1>
+<WRONG_2>
+[Errore specifico della terza opzione sbagliata — 1-2 frasi in italiano]
+</WRONG_2>"""
+
+
+async def generate_exam_explanation(
+    question_it: str,
+    choices: list[str],
+    correct_index: int,
+) -> dict[str, str]:
+    """
+    Generate per-choice explanation for an exam question.
+    Returns {"correct": "...", "wrong_0": "...", "wrong_1": "...", "wrong_2": "..."}
+
+    IMPORTANT: Check explanation_json IS NULL before calling this.
+    Generate-once-cache — never regenerate if explanation already exists.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+
+    client = AsyncAnthropic(api_key=api_key)
+
+    choice_labels = ["A", "B", "C", "D"]
+    choices_formatted = "\n".join(
+        f"  {choice_labels[i]}. {choice}" for i, choice in enumerate(choices)
+    )
+    correct_label = choice_labels[correct_index]
+    user_msg = (
+        f"Domanda d'esame: {question_it}\n\n"
+        f"Opzioni:\n{choices_formatted}\n\n"
+        f"Risposta corretta: {correct_label}. {choices[correct_index]}\n\n"
+        "Fornisci le spiegazioni per tutte le opzioni."
+    )
+
+    response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1024,
+        system=EXAM_EXPLANATION_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_msg}],
+    )
+    raw = response.content[0].text
+
+    correct_match = re.search(r"<CORRECT>\s*(.*?)\s*</CORRECT>", raw, re.DOTALL | re.IGNORECASE)
+    w0_match = re.search(r"<WRONG_0>\s*(.*?)\s*</WRONG_0>", raw, re.DOTALL | re.IGNORECASE)
+    w1_match = re.search(r"<WRONG_1>\s*(.*?)\s*</WRONG_1>", raw, re.DOTALL | re.IGNORECASE)
+    w2_match = re.search(r"<WRONG_2>\s*(.*?)\s*</WRONG_2>", raw, re.DOTALL | re.IGNORECASE)
+
+    if not all([correct_match, w0_match, w1_match, w2_match]):
+        logger.error(f"Exam explanation parse failed. Raw[:300]: {raw[:300]}")
+        raise ValueError("Unexpected response format for exam explanation")
+
+    return {
+        "correct": correct_match.group(1).strip(),
+        "wrong_0": w0_match.group(1).strip(),
+        "wrong_1": w1_match.group(1).strip(),
+        "wrong_2": w2_match.group(1).strip(),
+    }
