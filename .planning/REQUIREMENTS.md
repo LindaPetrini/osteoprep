@@ -35,10 +35,10 @@
 
 ### AI Chat
 
-- [ ] **CHAT-01**: User can open an AI chat interface to ask questions about any study topic
-- [ ] **CHAT-02**: Chat responses stream in real time (SSE — no waiting for full response)
-- [ ] **CHAT-03**: Chat is context-aware — when accessed from a topic page, Claude knows which topic the user is studying
-- [ ] **CHAT-04**: User can ask about their own progress ("which topics am I weakest on?") and Claude can respond with context
+- [x] **CHAT-01**: User can open an AI chat interface to ask questions about any study topic
+- [x] **CHAT-02**: Chat responses stream in real time (SSE — no waiting for full response)
+- [x] **CHAT-03**: Chat is context-aware — when accessed from a topic page, Claude knows which topic the user is studying
+- [x] **CHAT-04**: User can ask about their own progress ("which topics am I weakest on?") and Claude can respond with context
 
 ### Progress
 
@@ -104,10 +104,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXAM-02 | Phase 2 | Complete |
 | EXAM-03 | Phase 2 | Complete |
 | EXAM-04 | Phase 2 | Complete |
-| CHAT-01 | Phase 3 | Pending |
-| CHAT-02 | Phase 3 | Pending |
-| CHAT-03 | Phase 3 | Pending |
-| CHAT-04 | Phase 3 | Pending |
+| CHAT-01 | Phase 3 | Complete |
+| CHAT-02 | Phase 3 | Complete |
+| CHAT-03 | Phase 3 | Complete |
+| CHAT-04 | Phase 3 | Complete |
 | PROG-01 | Phase 3 | Complete |
 | PROG-02 | Phase 3 | Complete |
 | PROG-03 | Phase 1 | Complete (01-01) |

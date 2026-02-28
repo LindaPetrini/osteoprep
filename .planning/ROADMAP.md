@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation and Content Pipeline** - Bilingual schema, AI explainer generation with caching, mobile base UI, topic browsing
 - [x] **Phase 2: Active Learning** - FSRS flashcards (7-day cap), topic quizzes, past exam question bank (completed 2026-02-28)
-- [ ] **Phase 3: Progress and AI Chat** - Study dashboard, streaming chat with topic context injection
+- [x] **Phase 3: Progress and AI Chat** - Study dashboard, streaming chat with topic context injection (completed 2026-02-28)
 - [ ] **Phase 4: Coverage Completion and Mobile Polish** - All MUR exam topics covered, iPhone Safari validated
 
 ## Phase Details
@@ -65,8 +65,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Progress dashboard (/progress): topic completion counts, quiz accuracy by subject, SRS card counts; topic list completion badges (PROG-01, PROG-02)
-- [ ] 03-02-PLAN.md — Streaming AI chat: SSE endpoint, topic context injection, progress-aware system prompt, chat panel on topic pages (CHAT-01 through CHAT-04)
+- [x] 03-01-PLAN.md — Progress dashboard (/progress): topic completion counts, quiz accuracy by subject, SRS card counts; topic list completion badges (PROG-01, PROG-02)
+- [x] 03-02-PLAN.md — Streaming AI chat: SSE endpoint, topic context injection, progress-aware system prompt, chat panel on topic pages (CHAT-01 through CHAT-04)
 
 ### Phase 4: Coverage Completion and Mobile Polish
 **Goal**: Every topic area on the official MUR exam syllabus has an explainer and at least one quiz, and the full app is verified to work on iPhone Safari
@@ -91,5 +91,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation and Content Pipeline | 2/2 | Complete   | 2026-02-28 |
 | 2. Active Learning | 3/3 | Complete   | 2026-02-28 |
-| 3. Progress and AI Chat | 1/2 | In Progress|  |
+| 3. Progress and AI Chat | 2/2 | Complete   | 2026-02-28 |
 | 4. Coverage Completion and Mobile Polish | 0/2 | Not started | - |

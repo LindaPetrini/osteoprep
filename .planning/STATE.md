@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T19:47:43Z"
+last_updated: "2026-02-28T19:53:00Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 3, Plan 1 complete — progress dashboard live at /progress with SRS stats and topic completion badges
+**Current focus:** Phase 3 complete — progress dashboard at /progress and streaming AI chat on topic pages both live
 
 ## Current Position
 
 Phase: 3 of 4 (Progress and AI Chat)
-Plan: 1 of N complete
-Status: Phase 3 in progress — 03-01 done
-Last activity: 2026-02-28 — Completed 03-01 (progress dashboard at /progress, SRS counts, per-subject quiz accuracy, topic completion badges)
+Plan: 2 of 2 complete
+Status: Phase 3 complete — 03-01 and 03-02 done
+Last activity: 2026-02-28 — Completed 03-02 (SSE streaming AI chat panel on all topic pages, word-by-word Claude responses)
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -42,7 +42,7 @@ Progress: [██████░░░░] 60%
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 44 min | 22 min |
 | 2. Active Learning | 3/3 | 12 min | 4 min |
-| 3. Progress and AI Chat | 1/N | 2 min | 2 min |
+| 3. Progress and AI Chat | 2/2 | 5 min | 3 min |
 
 **Recent Trend:**
 - Last 5 plans: 01-02 (40 min), 02-01 (5 min), 02-02 (2 min), 02-03 (5 min), 03-01 (2 min)
@@ -83,6 +83,10 @@ Recent decisions affecting current work:
 - [03-01]: Single GROUP BY query for best_scores in fragment router to avoid N+1 per topic
 - [03-01]: SRS new_cards computed as total_cards - reviewed_cards (no SRSState row = never reviewed)
 - [03-01]: learned_cards clamped with max(0,...) to guard against edge cases where due > reviewed
+- [03-02]: Vanilla JS EventSource (not HTMX SSE extension) — simpler, GET-only, no CDN needed
+- [03-02]: Newlines escaped server-side (\n -> \\n) and unescaped client-side to protect SSE frame delimiter
+- [03-02]: Progress context in system prompt is best-effort (try/except) — chat never breaks on DB errors
+- [03-02]: GeneratorExit caught in stream_chat_generator — abandoned streams close via async context manager
 
 ### Pending Todos
 
@@ -96,10 +100,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T19:47Z
-Stopped at: Completed 03-01-PLAN.md — 2 tasks done, progress dashboard live at /progress.
+Last session: 2026-02-28T19:53Z
+Stopped at: Completed 03-02-PLAN.md — streaming AI chat live on all topic pages.
 
 ### Next steps
 
-1. Phase 3, Plan 1 complete. Execute Phase 3 remaining plans (streaming AI chat).
+1. Phase 3 complete. Advance to Phase 4.
 2. Past exam question sources blocker resolved: 22 TOLC-B/TOLC-F style MCQs seeded directly — no external PDFs required for v1.
