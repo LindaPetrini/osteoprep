@@ -62,11 +62,11 @@ Plans:
   3. User can open an AI chat panel from any topic page and ask a question — Claude's response streams in word by word (no waiting for full response)
   4. When chat is opened from a topic page, Claude already knows which topic is being studied without the user having to explain
   5. User can ask "which topics am I weakest on?" and Claude responds with accurate context from their quiz and SRS history
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Progress dashboard (topic completion, quiz scores by subject, SRS card counts), topic status tracking
-- [ ] 03-02: Streaming AI chat (SSE), topic context injection, progress context for self-assessment queries
+- [ ] 03-01-PLAN.md — Progress dashboard (/progress): topic completion counts, quiz accuracy by subject, SRS card counts; topic list completion badges (PROG-01, PROG-02)
+- [ ] 03-02-PLAN.md — Streaming AI chat: SSE endpoint, topic context injection, progress-aware system prompt, chat panel on topic pages (CHAT-01 through CHAT-04)
 
 ### Phase 4: Coverage Completion and Mobile Polish
 **Goal**: Every topic area on the official MUR exam syllabus has an explainer and at least one quiz, and the full app is verified to work on iPhone Safari
