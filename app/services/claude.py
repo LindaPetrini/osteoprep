@@ -83,6 +83,10 @@ async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
 
     raw = response.content[0].text
 
+    # Strip markdown code fences if Claude wrapped the output (e.g. ```xml ... ```)
+    raw = re.sub(r'^```[a-z]*\n?', '', raw.strip(), flags=re.IGNORECASE)
+    raw = re.sub(r'\n?```$', '', raw.strip())
+
     # Extract IT block: from <IT> to </IT> or <EN> (Claude sometimes omits closing tags)
     it_match = re.search(r'<IT>\s*(.*?)\s*(?:</IT>|<EN>)', raw, re.DOTALL | re.IGNORECASE)
     # Extract EN block: from <EN> to </EN> or end of string
