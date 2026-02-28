@@ -43,10 +43,16 @@
     </div>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem;">
+    <button type="submit" id="quiz-submit-btn" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem;">
       Invia risposte
     </button>
   </form>
+  <script>
+    document.getElementById('quiz-submit-btn').addEventListener('click', function() {
+      this.disabled = true;
+      this.textContent = 'Elaborazione…';
+    });
+  </script>
   {% endif %}
 </div>
 {% endblock %}

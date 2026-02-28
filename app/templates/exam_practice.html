@@ -25,10 +25,8 @@
 
 <!-- Exam form -->
 <form id="exam-form"
-      hx-post="/exam/submit"
-      hx-target="body"
-      hx-swap="outerHTML"
-      hx-push-url="/exam/results"
+      method="post"
+      action="/exam/submit"
       data-start-time="{{ start_time_epoch }}"
       data-duration="{{ duration_seconds }}"
       style="margin-top: 1rem;">
@@ -53,10 +51,16 @@
   </div>
   {% endfor %}
 
-  <button type="submit" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem; font-size: 1rem;">
+  <button type="submit" id="exam-submit-btn" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem; font-size: 1rem;">
     Consegna esame
   </button>
 </form>
+<script>
+  document.getElementById('exam-submit-btn').addEventListener('click', function() {
+    this.disabled = true;
+    this.textContent = 'Elaborazione…';
+  });
+</script>
 
 <script>
 (function() {
