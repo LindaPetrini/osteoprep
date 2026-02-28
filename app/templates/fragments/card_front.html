@@ -1,0 +1,17 @@
+<div id="card-container">
+  <div class="card bg-base-100 shadow-sm border border-base-300"
+       style="min-height: 160px; display: flex; align-items: center; justify-content: center; padding: 1.5rem; flex-direction: column;">
+    <p style="font-size: 1.125rem; font-weight: 600; text-align: center;">{{ flashcard.front_it }}</p>
+    {% if flashcard.front_en %}
+    <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem; text-align: center;">{{ flashcard.front_en }}</p>
+    {% endif %}
+  </div>
+  <button
+    class="btn btn-primary w-full"
+    style="margin-top: 1rem; min-height: 44px;"
+    hx-get="/review/cards/{{ srs_state.id }}/back?session_ids={{ session_ids | join(',') }}&current_index={{ current_index }}&total={{ total }}"
+    hx-target="#card-container"
+    hx-swap="outerHTML">
+    Mostra risposta
+  </button>
+</div>

@@ -1,0 +1,27 @@
+<div id="card-container">
+  <!-- Back content -->
+  <div class="card bg-base-100 shadow-sm border border-base-300"
+       style="padding: 1.5rem;">
+    <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">Risposta</p>
+    <p style="font-size: 1rem;">{{ flashcard.back_it }}</p>
+    {% if flashcard.back_en %}
+    <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.75rem; border-top: 1px solid #e5e7eb; padding-top: 0.5rem;">{{ flashcard.back_en }}</p>
+    {% endif %}
+  </div>
+
+  <!-- Rating buttons — full width row, 44px min height -->
+  <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem; margin-bottom: 0.5rem; text-align: center;">Com'e' andata?</p>
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
+    {% for label, value, color in [("Di nuovo", 1, "#ef4444"), ("Difficile", 2, "#f97316"), ("Bene", 3, "#22c55e"), ("Facile", 4, "#3b82f6")] %}
+    <form hx-post="/review/cards/{{ srs_state.id }}/rate" hx-target="#card-container" hx-swap="outerHTML">
+      <input type="hidden" name="rating" value="{{ value }}">
+      <input type="hidden" name="session_ids" value="{{ session_ids }}">
+      <input type="hidden" name="current_index" value="{{ current_index }}">
+      <input type="hidden" name="total" value="{{ total }}">
+      <button type="submit" class="btn w-full" style="min-height: 44px; background-color: {{ color }}; color: white; border: none; font-size: 0.75rem;">
+        {{ label }}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>

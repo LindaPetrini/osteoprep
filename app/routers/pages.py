@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal, get_db
 from app.models import Topic
 from app.services.claude import generate_explainer
+from app.services import fsrs_service
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -65,10 +66,11 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
         select(distinct(Topic.subject)).order_by(Topic.subject)
     )
     subjects = subjects_result.scalars().all()
+    due_count = await fsrs_service.get_due_count(db)
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"subjects": subjects},
+        context={"subjects": subjects, "active_tab": "topics", "due_count": due_count},
     )
 
 
@@ -100,8 +102,9 @@ async def topic_page(
     # Wikipedia image (3s timeout — optional, never blocks the page)
     wiki = await _get_wikipedia_info(topic.title_en)
 
+    due_count = await fsrs_service.get_due_count(db)
     return templates.TemplateResponse(
         request=request,
         name="topic.html",
-        context={"topic": topic, "lang": lang, "wiki": wiki},
+        context={"topic": topic, "lang": lang, "wiki": wiki, "active_tab": "topics", "due_count": due_count},
     )

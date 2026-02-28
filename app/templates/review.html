@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="padding-top: 1rem;">
+  <h1 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Ripasso carte</h1>
+
+  {% if total == 0 %}
+  <div class="alert alert-success">
+    <span>Nessuna carta da ripassare. Ottimo lavoro!</span>
+  </div>
+  {% else %}
+  <!-- Progress indicator -->
+  <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1rem;" id="progress-label">
+    Carta {{ current_index }} di {{ total }}
+  </p>
+
+  <!-- Card container — included fragment provides #card-container wrapper, swapped by HTMX -->
+  {% include "fragments/card_front.html" %}
+  {% endif %}
+</div>
+{% endblock %}
