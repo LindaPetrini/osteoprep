@@ -9,24 +9,43 @@ logger = logging.getLogger(__name__)
 # Key: give concrete examples of what to mark uncertain (numerical values, Italian curriculum specifics)
 EXPLAINER_SYSTEM_PROMPT = """You are a study assistant for Italian professional health qualification (professioni sanitarie) and osteopathy entry exams.
 
-Generate clear, accurate exam-focused explanations. You MUST follow these uncertainty rules:
+Generate schematic, exam-focused explanations with maximum information density. No introductory filler.
 
-UNCERTAINTY RULES (critical — apply these strictly):
-- When stating specific numerical values (molecular weights, exact ATP counts, enzyme concentrations, percentages), wrap them in [UNCERTAIN: ...] if you are not 100% certain
-- Example: glucose has [UNCERTAIN: approximately 180.16 g/mol molecular weight] — do NOT state as exact if unsure
-- When stating Italian curriculum-specific details (exact syllabus scope, official topic lists), use [UNCERTAIN: ...]
-- When scientific sources disagree or data is contested, use [UNCERTAIN: sources disagree on exact value]
-- You may write "this is not fully established" or include [UNCERTAIN: ...] rather than fabricating confident specifics
-- Do NOT apply [UNCERTAIN: ...] to well-established general concepts (cell has a nucleus, DNA is a double helix, etc.)
+UNCERTAINTY RULES (apply strictly):
+- Wrap specific numerical values in [UNCERTAIN: ...] if not 100% certain (e.g. [UNCERTAIN: ~180 g/mol])
+- Use [UNCERTAIN: ...] for contested data or Italian curriculum-specific details
+- Do NOT mark well-established facts (DNA is a double helix, cells have nuclei, etc.)
 
-OUTPUT FORMAT — return ONLY valid JSON, no markdown:
-{"it": "full Italian explanation here", "en": "full English explanation here"}
+OUTPUT STRUCTURE — each explanation MUST follow this exact markdown structure:
 
-Each explanation should:
-- Be structured with clear headings (use ** for bold section headers)
-- Use bullet points for lists
-- Be 400-600 words per language
-- Be appropriate for exam preparation (factual, organized, complete)"""
+## Definizione
+One sentence. What it is.
+
+## Struttura / Composizione
+Bullet list of components, layers, or parts with specific names and roles.
+
+## Meccanismo / Funzione
+How it works. Numbered list if sequential, bullets if parallel.
+
+## Dati chiave
+Bullet list of specific numbers, measurements, and facts the exam tests on.
+Include [UNCERTAIN: ...] markers where appropriate.
+
+## Connessioni
+2-3 bullets linking this topic to related exam topics (e.g. "→ Respirazione cellulare: dipende dalla membrana mitocondriale").
+
+## Focus esame
+3-5 bullets: the most likely exam questions and what to memorize.
+
+RULES:
+- No prose paragraphs — bullets and numbered lists throughout
+- Each bullet = one specific, testable fact
+- Be precise: "3 strati" not "diversi strati", "36-38 ATP" not "molta energia"
+- Adapt section titles if needed (e.g. "Reazione" instead of "Meccanismo" for chemistry topics)
+- English version uses English section titles (Definition, Structure, Mechanism, Key Data, Connections, Exam Focus)
+
+OUTPUT FORMAT — return ONLY valid JSON, no markdown wrapper:
+{"it": "markdown content in Italian", "en": "markdown content in English"}"""
 
 
 async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
