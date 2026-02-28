@@ -7,12 +7,9 @@
 <div class="sticky top-0 z-10 bg-base-100 border-b border-base-300 py-2 -mx-4 px-4 mb-4">
   <div class="flex items-center justify-between gap-2">
 
-    {# Back link — text label + arrow for clarity #}
-    <a href="/" class="btn btn-ghost btn-sm min-h-[44px] gap-1 px-2 text-base-content/70 flex-shrink-0">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      <span class="text-xs">Argomenti</span>
+    {# Back link — plain link, minimum 44px tap target #}
+    <a href="/" class="flex items-center gap-1 text-sm text-base-content/60 hover:text-base-content min-h-[44px] flex-shrink-0 pr-2">
+      ← Indietro
     </a>
 
     {# Topic title (truncated on small screens) #}

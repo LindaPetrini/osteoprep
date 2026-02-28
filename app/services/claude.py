@@ -1,12 +1,11 @@
 import os
-import json
+import re
 import logging
 from anthropic import AsyncAnthropic
 
 logger = logging.getLogger(__name__)
 
-# System prompt with explicit uncertainty rules and examples
-# Key: give concrete examples of what to mark uncertain (numerical values, Italian curriculum specifics)
+# XML delimiters are robust with embedded markdown — no JSON escaping issues
 EXPLAINER_SYSTEM_PROMPT = """You are a study assistant for Italian professional health qualification (professioni sanitarie) and osteopathy entry exams.
 
 Generate detailed, schematic study notes. Dense with information. No filler.
@@ -16,94 +15,84 @@ UNCERTAINTY RULES:
 - Use for contested data or Italian curriculum-specific details
 - Do NOT mark well-established facts
 
-OUTPUT STRUCTURE — follow this markdown template exactly:
+OUTPUT STRUCTURE — each language must follow this markdown structure:
 
 ## Definizione
-One precise sentence. What it is, where it exists, what its core purpose is.
+One precise sentence: what it is, where it exists, what its core purpose is.
 
 ## Struttura / Composizione
-Bullet list — each bullet covers one component/layer/part with:
-- Its name
-- What it is made of or how it is arranged
-- Its specific role or property
-Example: "- Membrana plasmatica: doppio strato fosfolipidico (~7 nm), delimita la cellula, permeabilità selettiva — lipidi passano liberamente, ioni richiedono proteine canale"
+Bullet list. Each bullet = one component/layer/part with:
+- Name + what it is made of or arranged as + its specific role
+- Example: "- Membrana plasmatica: doppio strato fosfolipidico (~7 nm), delimita la cellula, permeabilità selettiva — i lipidi passano liberamente, gli ioni richiedono canali proteici"
 
 ## Meccanismo / Funzione
-How it works. Number steps if sequential, bullets if parallel processes.
-Each step: what happens + why it matters. Be specific about molecules, directions, results.
+How it works. Numbered list if sequential, bullets if parallel.
+Each point: what happens + why it matters. Name specific molecules, directions, results.
 
 ## Dati chiave
-Testable numbers and facts — each bullet one concrete datum:
-- Sizes, temperatures, pH values, concentrations, counts, timings
-- Use [UNCERTAIN: ...] where not 100% certain
+Testable numbers, sizes, counts, pH, temperatures — one datum per bullet.
+Use [UNCERTAIN: ...] where not 100% certain.
 
-## Perché è importante / Contesto
-2-3 sentences of biological or chemical context: why this structure/process matters in the bigger picture, what would fail without it, how it connects to physiology or pathology.
+## Perché è importante
+2-3 sentences: why this matters in the bigger picture, what would break without it, how it connects to physiology or disease.
 
 ## Connessioni agli altri argomenti
-3-4 bullets explicitly linking this topic to others on the exam:
-- "→ [Topic name]: [how they connect — one specific sentence]"
-Example: "→ Respirazione cellulare: la membrana mitocondriale interna è il sito della catena respiratoria, il cui gradiente protonico dipende dalla sua impermeabilità"
+3-4 bullets linking to other exam topics:
+- "→ [Topic]: [one specific sentence on how they connect]"
 
 ## Focus esame
-5-6 bullets: most likely exam questions + key facts to memorize.
-Format: "❓ [Likely question or fact]"
+5-6 bullets of likely exam questions and key memorization points:
+- "❓ [Question or fact to memorize]"
 
 RULES:
-- Every bullet must contain at least one specific, verifiable detail — no vague statements
-- Adapt section titles to the topic (e.g. "Reazione" instead of "Meccanismo" for chemistry)
-- English version uses English titles (Definition, Structure/Composition, Mechanism/Function, Key Data, Why It Matters, Connections, Exam Focus)
+- Every bullet must have at least one specific, verifiable detail — no vague statements
+- Adapt section titles if needed (e.g. "Reazione" not "Meccanismo" for chemistry topics)
+- English version uses English titles: Definition / Structure / Mechanism / Key Data / Why It Matters / Connections / Exam Focus
 
-OUTPUT FORMAT — ONLY valid JSON, no markdown wrapper:
-{"it": "markdown in Italian", "en": "markdown in English"}"""
+OUTPUT FORMAT — use these exact XML tags, nothing else before or after:
+<IT>
+[Italian markdown here]
+</IT>
+<EN>
+[English markdown here]
+</EN>"""
 
 
 async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
     """
     Generate Italian and English explainers in a single Claude API call.
     Returns (content_it, content_en).
-
-    NEVER call this if content already exists — check DB first.
-    Raises RuntimeError if ANTHROPIC_API_KEY is missing or API call fails.
+    Never call this when content already exists in DB.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
 
     client = AsyncAnthropic(api_key=api_key)
-
     logger.info(f"Generating explainer for: {title_it}")
 
     response = await client.messages.create(
-        model="claude-haiku-4-5-20251001",  # Fast + cheap for content gen
-        max_tokens=4096,  # Richer format — more detail per section
+        model="claude-haiku-4-5-20251001",
+        max_tokens=4096,
         system=EXPLAINER_SYSTEM_PROMPT,
         messages=[{
             "role": "user",
-            "content": (
-                f"Create a study explainer for the Italian exam topic: '{title_it}' (English: '{title_en}').\n"
-                f"Return JSON with 'it' and 'en' keys as specified."
-            )
+            "content": f"Write study notes for: '{title_it}' (English: '{title_en}')."
         }]
     )
 
-    raw = response.content[0].text.strip()
+    raw = response.content[0].text
 
-    # Parse JSON — strip markdown code fences if present
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+    # Extract IT block: from <IT> to </IT> or <EN> (Claude sometimes omits closing tags)
+    it_match = re.search(r'<IT>\s*(.*?)\s*(?:</IT>|<EN>)', raw, re.DOTALL | re.IGNORECASE)
+    # Extract EN block: from <EN> to </EN> or end of string
+    en_match = re.search(r'<EN>\s*(.*?)\s*(?:</EN>|$)', raw, re.DOTALL | re.IGNORECASE)
 
-    try:
-        data = json.loads(raw)
-        content_it = data.get("it", "").strip()
-        content_en = data.get("en", "").strip()
-        if not content_it or not content_en:
-            raise ValueError("Empty content in response")
-        return content_it, content_en
-    except (json.JSONDecodeError, ValueError) as e:
-        logger.error(f"Failed to parse Claude response for '{title_it}': {e}")
-        logger.error(f"Raw response: {raw[:500]}")
-        # Fallback: treat entire response as Italian content, use as English too
-        return raw, raw
+    if it_match and en_match:
+        content_it = it_match.group(1).strip()
+        content_en = en_match.group(1).strip()
+        if content_it and content_en:
+            return content_it, content_en
+
+    logger.error(f"Failed to parse response for '{title_it}'. Raw[:300]: {raw[:300]}")
+    raise ValueError(f"Unexpected response format for '{title_it}'")

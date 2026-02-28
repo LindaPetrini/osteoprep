@@ -1,9 +1,8 @@
-import asyncio
 import logging
 from datetime import datetime
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,6 +76,7 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
 async def topic_page(
     request: Request,
     slug: str,
+    background_tasks: BackgroundTasks,
     lang: str = "it",
     db: AsyncSession = Depends(get_db),
 ):
@@ -95,7 +95,7 @@ async def topic_page(
     # Non-blocking: start generation in background if content missing
     if topic.content_it is None and slug not in _generating:
         _generating.add(slug)
-        asyncio.create_task(_generate_and_cache(slug))
+        background_tasks.add_task(_generate_and_cache, slug)
 
     # Wikipedia image (3s timeout — optional, never blocks the page)
     wiki = await _get_wikipedia_info(topic.title_en)
