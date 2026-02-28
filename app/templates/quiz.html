@@ -48,9 +48,10 @@
     </button>
   </form>
   <script>
-    document.getElementById('quiz-submit-btn').addEventListener('click', function() {
-      this.disabled = true;
-      this.textContent = 'Elaborazione…';
+    document.querySelector('form').addEventListener('submit', function() {
+      var btn = document.getElementById('quiz-submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Elaborazione…';
     });
   </script>
   {% endif %}

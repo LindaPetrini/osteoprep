@@ -56,9 +56,10 @@
   </button>
 </form>
 <script>
-  document.getElementById('exam-submit-btn').addEventListener('click', function() {
-    this.disabled = true;
-    this.textContent = 'Elaborazione…';
+  document.getElementById('exam-form').addEventListener('submit', function() {
+    var btn = document.getElementById('exam-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Elaborazione…';
   });
 </script>
 
