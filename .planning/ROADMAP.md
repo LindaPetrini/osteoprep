@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold, SQLite schema with bilingual columns, Alembic migrations, Nginx/Uvicorn/systemd setup
+- [x] 01-01-PLAN.md — Project scaffold, SQLite schema with bilingual columns, Alembic migrations, Nginx/Uvicorn/systemd setup
 - [ ] 01-02-PLAN.md — Topic browsing UI, subject accordions, AI explainer generation + caching, language toggle, uncertainty markers
 
 ### Phase 2: Active Learning
@@ -89,7 +89,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Content Pipeline | 0/2 | Not started | - |
+| 1. Foundation and Content Pipeline | 1/2 | In progress | - |
 | 2. Active Learning | 0/3 | Not started | - |
 | 3. Progress and AI Chat | 0/2 | Not started | - |
 | 4. Coverage Completion and Mobile Polish | 0/2 | Not started | - |

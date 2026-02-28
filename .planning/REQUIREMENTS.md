@@ -7,7 +7,7 @@
 
 ### Content
 
-- [ ] **CONT-01**: User can browse study topics organized by subject (Biology, Chemistry, Physics/Math, Logic)
+- [x] **CONT-01**: User can browse study topics organized by subject (Biology, Chemistry, Physics/Math, Logic)
 - [ ] **CONT-02**: User can read an AI-generated explainer for each topic, generated on first access and cached in the database
 - [ ] **CONT-03**: User can toggle between Italian and English versions of any explainer
 - [ ] **CONT-04**: Explainers include hallucination mitigation (AI expresses uncertainty where appropriate, links to authoritative sources where possible)
@@ -44,7 +44,7 @@
 
 - [ ] **PROG-01**: User can view a dashboard showing completed topics, quiz scores per subject, and SRS card counts (due today, learned, new)
 - [ ] **PROG-02**: Each topic shows completion status (not started / reading / quiz passed)
-- [ ] **PROG-03**: Progress data persists across sessions (server-side SQLite storage)
+- [x] **PROG-03**: Progress data persists across sessions (server-side SQLite storage)
 
 ## v2 Requirements
 
@@ -88,7 +88,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | Phase 1 | Pending |
+| CONT-01 | Phase 1 | Complete (01-01) |
 | CONT-02 | Phase 1 | Pending |
 | CONT-03 | Phase 1 | Pending |
 | CONT-04 | Phase 1 | Pending |
@@ -110,7 +110,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHAT-04 | Phase 3 | Pending |
 | PROG-01 | Phase 3 | Pending |
 | PROG-02 | Phase 3 | Pending |
-| PROG-03 | Phase 1 | Pending |
+| PROG-03 | Phase 1 | Complete (01-01) |
 
 **Coverage:**
 - v1 requirements: 23 total
