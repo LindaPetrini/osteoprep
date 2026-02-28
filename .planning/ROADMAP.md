@@ -45,12 +45,12 @@ Plans:
   3. User can take a multiple-choice quiz after a topic section and see per-answer explanations for both correct and wrong options
   4. Quiz scores are saved and visible (user can see their score history)
   5. User can access past Italian exam questions and take a timed practice test; after completing, they see correct answers with AI-generated explanations
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [x] 02-01: FSRS engine integration (py-fsrs, 7-day interval cap), flashcard schema, card review UI (flip, 4-button rating)
-- [ ] 02-02: AI-generated topic quiz questions, correct/incorrect feedback UI, quiz score persistence
-- [ ] 02-03: Past exam question import, timed practice test UI, per-question result persistence
+- [x] 02-01-PLAN.md — FSRS engine integration (py-fsrs, 7-day interval cap), flashcard schema, card review UI (flip, 4-button rating)
+- [ ] 02-02-PLAN.md — Topic quiz: 15+ seeded Italian MCQs, quiz router, per-answer AI explanations, score history (QUIZ-01 through QUIZ-04)
+- [ ] 02-03-PLAN.md — Practice exam: 20+ seeded Italian MCQs, timed exam UI with countdown, auto-submit, AI explanations, attempt persistence (EXAM-01 through EXAM-04)
 
 ### Phase 3: Progress and AI Chat
 **Goal**: User can see their overall study progress at a glance and ask Claude questions about any topic with responses that stream in real time
