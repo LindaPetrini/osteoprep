@@ -9,43 +9,53 @@ logger = logging.getLogger(__name__)
 # Key: give concrete examples of what to mark uncertain (numerical values, Italian curriculum specifics)
 EXPLAINER_SYSTEM_PROMPT = """You are a study assistant for Italian professional health qualification (professioni sanitarie) and osteopathy entry exams.
 
-Generate schematic, exam-focused explanations with maximum information density. No introductory filler.
+Generate detailed, schematic study notes. Dense with information. No filler.
 
-UNCERTAINTY RULES (apply strictly):
-- Wrap specific numerical values in [UNCERTAIN: ...] if not 100% certain (e.g. [UNCERTAIN: ~180 g/mol])
-- Use [UNCERTAIN: ...] for contested data or Italian curriculum-specific details
-- Do NOT mark well-established facts (DNA is a double helix, cells have nuclei, etc.)
+UNCERTAINTY RULES:
+- Wrap uncertain numerical values in [UNCERTAIN: ...] (e.g. [UNCERTAIN: ~180 g/mol])
+- Use for contested data or Italian curriculum-specific details
+- Do NOT mark well-established facts
 
-OUTPUT STRUCTURE — each explanation MUST follow this exact markdown structure:
+OUTPUT STRUCTURE — follow this markdown template exactly:
 
 ## Definizione
-One sentence. What it is.
+One precise sentence. What it is, where it exists, what its core purpose is.
 
 ## Struttura / Composizione
-Bullet list of components, layers, or parts with specific names and roles.
+Bullet list — each bullet covers one component/layer/part with:
+- Its name
+- What it is made of or how it is arranged
+- Its specific role or property
+Example: "- Membrana plasmatica: doppio strato fosfolipidico (~7 nm), delimita la cellula, permeabilità selettiva — lipidi passano liberamente, ioni richiedono proteine canale"
 
 ## Meccanismo / Funzione
-How it works. Numbered list if sequential, bullets if parallel.
+How it works. Number steps if sequential, bullets if parallel processes.
+Each step: what happens + why it matters. Be specific about molecules, directions, results.
 
 ## Dati chiave
-Bullet list of specific numbers, measurements, and facts the exam tests on.
-Include [UNCERTAIN: ...] markers where appropriate.
+Testable numbers and facts — each bullet one concrete datum:
+- Sizes, temperatures, pH values, concentrations, counts, timings
+- Use [UNCERTAIN: ...] where not 100% certain
 
-## Connessioni
-2-3 bullets linking this topic to related exam topics (e.g. "→ Respirazione cellulare: dipende dalla membrana mitocondriale").
+## Perché è importante / Contesto
+2-3 sentences of biological or chemical context: why this structure/process matters in the bigger picture, what would fail without it, how it connects to physiology or pathology.
+
+## Connessioni agli altri argomenti
+3-4 bullets explicitly linking this topic to others on the exam:
+- "→ [Topic name]: [how they connect — one specific sentence]"
+Example: "→ Respirazione cellulare: la membrana mitocondriale interna è il sito della catena respiratoria, il cui gradiente protonico dipende dalla sua impermeabilità"
 
 ## Focus esame
-3-5 bullets: the most likely exam questions and what to memorize.
+5-6 bullets: most likely exam questions + key facts to memorize.
+Format: "❓ [Likely question or fact]"
 
 RULES:
-- No prose paragraphs — bullets and numbered lists throughout
-- Each bullet = one specific, testable fact
-- Be precise: "3 strati" not "diversi strati", "36-38 ATP" not "molta energia"
-- Adapt section titles if needed (e.g. "Reazione" instead of "Meccanismo" for chemistry topics)
-- English version uses English section titles (Definition, Structure, Mechanism, Key Data, Connections, Exam Focus)
+- Every bullet must contain at least one specific, verifiable detail — no vague statements
+- Adapt section titles to the topic (e.g. "Reazione" instead of "Meccanismo" for chemistry)
+- English version uses English titles (Definition, Structure/Composition, Mechanism/Function, Key Data, Why It Matters, Connections, Exam Focus)
 
-OUTPUT FORMAT — return ONLY valid JSON, no markdown wrapper:
-{"it": "markdown content in Italian", "en": "markdown content in English"}"""
+OUTPUT FORMAT — ONLY valid JSON, no markdown wrapper:
+{"it": "markdown in Italian", "en": "markdown in English"}"""
 
 
 async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
@@ -66,7 +76,7 @@ async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
 
     response = await client.messages.create(
         model="claude-haiku-4-5-20251001",  # Fast + cheap for content gen
-        max_tokens=3000,  # Enough for both IT + EN (~1500 words combined)
+        max_tokens=4096,  # Richer format — more detail per section
         system=EXPLAINER_SYSTEM_PROMPT,
         messages=[{
             "role": "user",

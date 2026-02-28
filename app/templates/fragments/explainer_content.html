@@ -1,12 +1,23 @@
 {% set content = topic.content_it if lang == "it" else topic.content_en %}
 
 {% if content %}
-<div class="prose prose-sm max-w-none text-base-content leading-relaxed">
+{# Content ready — render markdown + uncertainty markers #}
+<div class="prose prose-sm max-w-none text-base-content leading-relaxed
+            prose-headings:text-base-content prose-headings:font-bold
+            prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:border-b prose-h2:border-base-300 prose-h2:pb-1
+            prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1">
   {{ content | render_content | safe }}
 </div>
+
 {% else %}
-<div class="flex flex-col items-center py-8 gap-2">
-  <span class="loading loading-spinner loading-lg text-primary"></span>
-  <p class="text-base-content/60 text-sm">Generazione in corso...</p>
+{# Content not yet generated — poll every 2s until it appears #}
+<div hx-get="/topic/{{ topic.slug }}/content?lang={{ lang }}"
+     hx-trigger="every 2s"
+     hx-swap="outerHTML">
+  <div class="flex flex-col items-center py-10 gap-3 text-base-content/50">
+    <span class="loading loading-spinner loading-lg text-primary"></span>
+    <p class="text-sm">Generazione in corso…</p>
+    <p class="text-xs">Claude sta scrivendo il riassunto, ci vorranno ~20 secondi</p>
+  </div>
 </div>
 {% endif %}
