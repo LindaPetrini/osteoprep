@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Risultati Quiz: {{ topic.title_it }} - OsteoPrep{% endblock %}
+
+{% block content %}
+<div style="padding-top: 1rem;">
+  <!-- Header -->
+  <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+    <a href="/topic/{{ topic.slug }}" style="color: #6b7280; font-size: 0.875rem; min-height: 44px; display: flex; align-items: center;">
+      &larr; Argomento
+    </a>
+    <h1 style="font-size: 1.125rem; font-weight: 700; flex: 1;">
+      Risultati: {{ topic.title_it }}
+    </h1>
+  </div>
+
+  <!-- Score card -->
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="padding: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
+    <p style="font-size: 2.5rem; font-weight: 800;
+              color: {% if score == max_score %}#16a34a{% elif score >= max_score // 2 %}#d97706{% else %}#dc2626{% endif %};">
+      {{ score }}/{{ max_score }}
+    </p>
+    <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">
+      {% if score == max_score %}
+        Perfetto! Tutte le risposte corrette.
+      {% elif score >= max_score // 2 + 1 %}
+        Buon risultato. Ripassare le risposte sbagliate.
+      {% else %}
+        Ripassare l'argomento e riprovare.
+      {% endif %}
+    </p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem;">
+      <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary btn-sm" style="min-height: 44px;">
+        Riprova il quiz
+      </a>
+      <a href="/topic/{{ topic.slug }}" class="btn btn-ghost btn-sm" style="min-height: 44px;">
+        Torna all'argomento
+      </a>
+    </div>
+  </div>
+
+  <!-- Per-question breakdown -->
+  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Domande e spiegazioni</h2>
+  {% for r in results %}
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;">
+    <!-- Question with correct/wrong indicator -->
+    <div style="display: flex; gap: 0.625rem; align-items: flex-start; margin-bottom: 0.875rem;">
+      <span style="font-size: 1.125rem; flex-shrink: 0;">
+        {% if r.is_correct %}&#10003;{% else %}&#10007;{% endif %}
+      </span>
+      <p style="font-weight: 600; line-height: 1.4;">{{ r.question_it }}</p>
+    </div>
+
+    <!-- Per-choice breakdown -->
+    {% for choice in r.choices %}
+    <div style="padding: 0.625rem 0.75rem; border-radius: 0.5rem; margin-bottom: 0.5rem;
+                background-color: {% if choice.is_correct %}#dcfce7{% elif choice.is_chosen and not choice.is_correct %}#fee2e2{% else %}#f9fafb{% endif %};
+                border: 1px solid {% if choice.is_correct %}#86efac{% elif choice.is_chosen and not choice.is_correct %}#fca5a5{% else %}#e5e7eb{% endif %};">
+      <p style="font-size: 0.9375rem; font-weight: {% if choice.is_chosen %}600{% else %}400{% endif %}; margin-bottom: 0.25rem;">
+        {% if choice.is_correct %}&#10003; {% elif choice.is_chosen %}&#10007; {% endif %}{{ choice.text }}
+        {% if choice.is_chosen and not choice.is_correct %}<span style="font-size: 0.75rem; color: #dc2626;"> (la tua risposta)</span>{% endif %}
+        {% if choice.is_correct and choice.is_chosen %}<span style="font-size: 0.75rem; color: #16a34a;"> (la tua risposta)</span>{% endif %}
+      </p>
+      <p style="font-size: 0.8125rem; color: #374151; line-height: 1.4;">{{ choice.explanation }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <!-- Score history -->
+  {% if history %}
+  <div style="margin-top: 1.5rem; margin-bottom: 2rem;">
+    <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem;">Cronologia punteggi</h2>
+    <div class="card bg-base-100 shadow-sm border border-base-300" style="overflow: hidden;">
+      {% for attempt in history %}
+      <div style="display: flex; justify-content: space-between; align-items: center;
+                  padding: 0.625rem 1rem;
+                  border-bottom: {% if not loop.last %}1px solid #e5e7eb{% else %}none{% endif %};">
+        <span style="font-size: 0.875rem; color: #6b7280;">
+          {{ attempt.attempted_at.strftime('%d/%m/%Y %H:%M') }}
+        </span>
+        <span style="font-weight: 600;
+                     color: {% if attempt.score == attempt.max_score %}#16a34a{% elif attempt.score >= attempt.max_score // 2 %}#d97706{% else %}#dc2626{% endif %};">
+          {{ attempt.score }}/{{ attempt.max_score }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

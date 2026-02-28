@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from app.database import AsyncSessionLocal, engine, Base
 from app.models import Topic
-from app.routers import pages, fragments, review
+from app.routers import pages, fragments, review, quiz
 from app.services.claude import generate_explainer
 from app.templates_config import templates
 
@@ -63,6 +63,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(pages.router)
 app.include_router(fragments.router)
 app.include_router(review.router)
+app.include_router(quiz.router)
 
 # Expose templates on app.state for access from other modules if needed
 app.state.templates = templates
