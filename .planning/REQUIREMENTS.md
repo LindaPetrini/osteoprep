@@ -117,6 +117,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Mapped to phases: 23
 - Unmapped: 0 ✓
 
+**Note on Phase 4:** Phase 4 (Coverage Completion and Mobile Polish) is an execution phase that ensures CONT-01, CONT-02, and QUIZ-01 are fulfilled at full MUR syllabus breadth. It introduces no new requirement IDs — it delivers on the scope already declared by those requirements.
+
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 after roadmap creation*
