@@ -18,6 +18,11 @@ TOPICS = [
     {"slug": "genetica-mendeliana", "title_it": "Genetica mendeliana", "title_en": "Mendelian genetics", "subject": "biology", "order_in_subject": 8},
     {"slug": "evoluzione-selezione", "title_it": "Evoluzione e selezione naturale", "title_en": "Evolution and natural selection", "subject": "biology", "order_in_subject": 9},
     {"slug": "sistema-nervoso", "title_it": "Sistema nervoso", "title_en": "Nervous system", "subject": "biology", "order_in_subject": 10},
+    {"slug": "mitocondri", "title_it": "Mitocondri e respirazione cellulare", "title_en": "Mitochondria and cellular respiration", "subject": "biology", "order_in_subject": 11},
+    {"slug": "tessuti-animali", "title_it": "Tessuti animali", "title_en": "Animal tissues", "subject": "biology", "order_in_subject": 12},
+    {"slug": "sistemi-organo", "title_it": "Sistemi d'organo umani", "title_en": "Human organ systems", "subject": "biology", "order_in_subject": 13},
+    {"slug": "virus-procarioti", "title_it": "Virus e procarioti", "title_en": "Viruses and prokaryotes", "subject": "biology", "order_in_subject": 14},
+    {"slug": "biotecnologie-dna", "title_it": "Biotecnologie e DNA ricombinante", "title_en": "Biotechnology and recombinant DNA", "subject": "biology", "order_in_subject": 15},
     # Chemistry topics
     {"slug": "atomo-struttura", "title_it": "Struttura dell'atomo", "title_en": "Atomic structure", "subject": "chemistry", "order_in_subject": 1},
     {"slug": "tavola-periodica", "title_it": "Tavola periodica degli elementi", "title_en": "Periodic table", "subject": "chemistry", "order_in_subject": 2},
@@ -29,6 +34,21 @@ TOPICS = [
     {"slug": "lipidi", "title_it": "Lipidi", "title_en": "Lipids", "subject": "chemistry", "order_in_subject": 8},
     {"slug": "proteine-struttura", "title_it": "Struttura delle proteine", "title_en": "Protein structure", "subject": "chemistry", "order_in_subject": 9},
     {"slug": "enzimi", "title_it": "Enzimi e catalisi", "title_en": "Enzymes and catalysis", "subject": "chemistry", "order_in_subject": 10},
+    {"slug": "soluzioni-proprieta", "title_it": "Soluzioni e proprietà", "title_en": "Solutions and properties", "subject": "chemistry", "order_in_subject": 11},
+    {"slug": "equilibrio-chimico", "title_it": "Equilibrio chimico e tamponi", "title_en": "Chemical equilibrium and buffers", "subject": "chemistry", "order_in_subject": 12},
+    {"slug": "nomenclatura-inorganica", "title_it": "Nomenclatura composti inorganici", "title_en": "Inorganic compound nomenclature", "subject": "chemistry", "order_in_subject": 13},
+    {"slug": "chimica-organica", "title_it": "Chimica organica: idrocarburi e gruppi funzionali", "title_en": "Organic chemistry: hydrocarbons and functional groups", "subject": "chemistry", "order_in_subject": 14},
+    # Physics / Math topics (new subject: "physics")
+    {"slug": "grandezze-fisiche", "title_it": "Grandezze fisiche e misura", "title_en": "Physical quantities and measurement", "subject": "physics", "order_in_subject": 1},
+    {"slug": "cinematica", "title_it": "Cinematica", "title_en": "Kinematics", "subject": "physics", "order_in_subject": 2},
+    {"slug": "dinamica", "title_it": "Dinamica e le leggi di Newton", "title_en": "Dynamics and Newton's laws", "subject": "physics", "order_in_subject": 3},
+    {"slug": "meccanica-fluidi", "title_it": "Meccanica dei fluidi", "title_en": "Fluid mechanics", "subject": "physics", "order_in_subject": 4},
+    {"slug": "termodinamica", "title_it": "Termodinamica", "title_en": "Thermodynamics", "subject": "physics", "order_in_subject": 5},
+    {"slug": "elettromagnetismo", "title_it": "Elettromagnetismo", "title_en": "Electromagnetism", "subject": "physics", "order_in_subject": 6},
+    {"slug": "algebra-aritmetica", "title_it": "Algebra e aritmetica", "title_en": "Algebra and arithmetic", "subject": "physics", "order_in_subject": 7},
+    {"slug": "funzioni", "title_it": "Funzioni matematiche", "title_en": "Mathematical functions", "subject": "physics", "order_in_subject": 8},
+    {"slug": "geometria", "title_it": "Geometria e trigonometria", "title_en": "Geometry and trigonometry", "subject": "physics", "order_in_subject": 9},
+    {"slug": "probabilita-statistica", "title_it": "Probabilità e statistica", "title_en": "Probability and statistics", "subject": "physics", "order_in_subject": 10},
 ]
 
 def seed():
