@@ -14,10 +14,10 @@
 
 ### Quizzes
 
-- [ ] **QUIZ-01**: User can take a multiple-choice quiz after completing a topic section
-- [ ] **QUIZ-02**: Each quiz question shows which answers are correct and why (AI-generated explanation per answer choice)
-- [ ] **QUIZ-03**: Wrong answers are explained — user sees why each wrong option is incorrect
-- [ ] **QUIZ-04**: Quiz scores are saved and visible in progress tracking
+- [x] **QUIZ-01**: User can take a multiple-choice quiz after completing a topic section
+- [x] **QUIZ-02**: Each quiz question shows which answers are correct and why (AI-generated explanation per answer choice)
+- [x] **QUIZ-03**: Wrong answers are explained — user sees why each wrong option is incorrect
+- [x] **QUIZ-04**: Quiz scores are saved and visible in progress tracking
 
 ### Flashcards
 
@@ -92,10 +92,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-02 | Phase 1 | Complete (01-02) |
 | CONT-03 | Phase 1 | Complete (01-02) |
 | CONT-04 | Phase 1 | Complete (01-02) |
-| QUIZ-01 | Phase 2 | Pending |
-| QUIZ-02 | Phase 2 | Pending |
-| QUIZ-03 | Phase 2 | Pending |
-| QUIZ-04 | Phase 2 | Pending |
+| QUIZ-01 | Phase 2 | Complete |
+| QUIZ-02 | Phase 2 | Complete |
+| QUIZ-03 | Phase 2 | Complete |
+| QUIZ-04 | Phase 2 | Complete |
 | CARD-01 | Phase 2 | Complete (02-01) |
 | CARD-02 | Phase 2 | Complete (02-01) |
 | CARD-03 | Phase 2 | Complete (02-01) |

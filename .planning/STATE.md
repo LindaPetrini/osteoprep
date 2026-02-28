@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-02-28T17:35:00Z"
+last_updated: "2026-02-28T18:01:00Z"
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Cover the key Italian osteopathy exam topics effectively in 3 weeks through AI-generated explanations, spaced repetition, and practice with real exam formats.
-**Current focus:** Phase 2, Plan 1 complete — FSRS flashcard review working
+**Current focus:** Phase 2, Plan 2 complete — topic quiz feature live at /topic/{slug}/quiz
 
 ## Current Position
 
 Phase: 2 of 4 (Active Learning)
-Plan: 1 of N complete
-Status: Phase 2 in progress — 02-01 done, ready for 02-02
-Last activity: 2026-02-28 — Completed 02-01 (FSRS flashcard review + Phase 2 DB schema)
+Plan: 2 of N complete
+Status: Phase 2 in progress — 02-01 and 02-02 done
+Last activity: 2026-02-28 — Completed 02-02 (topic quiz with MCQs, AI explanations, score history)
 
-Progress: [███░░░░░░░] 30%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -41,10 +41,10 @@ Progress: [███░░░░░░░] 30%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Foundation | 2/2 | 44 min | 22 min |
-| 2. Active Learning | 1/N | 5 min | 5 min |
+| 2. Active Learning | 2/N | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min)
+- Last 5 plans: 01-01 (4 min), 01-02 (40 min), 02-01 (5 min), 02-02 (2 min)
 - Trend: fast execution on DB + UI tasks
 
 *Updated after each plan completion*
@@ -72,6 +72,10 @@ Recent decisions affecting current work:
 - [02-01]: card_front and card_back fragments own their #card-container wrapper; review.html uses {% include %} without extra wrapper to avoid double-nesting with HTMX outerHTML swap
 - [02-01]: maximum_interval=7 is a direct Scheduler attribute in py-fsrs 6.3.0, not scheduler.parameters.maximum_interval (parameters is a tuple of floats)
 - [02-01]: due_count guard in base.html uses "is defined" check to handle routes that do not yet pass the context variable
+- [02-02]: Radio button values use loop.index0 (Jinja2 zero-based loop counter) — Jinja2 has no enumerate filter
+- [02-02]: answer_{question_id} form field naming — maps cleanly to DB question IDs regardless of display order
+- [02-02]: QuizAttempt saved before fetching score history so results page includes current attempt
+- [02-02]: generate-once-cache: explanation_json IS NULL check in router, db.flush() persists immediately, never regenerate
 
 ### Pending Todos
 
@@ -85,10 +89,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-28T17:35Z
-Stopped at: Completed 02-01-PLAN.md — 2 tasks done, FSRS review session live at /review.
+Last session: 2026-02-28T18:01Z
+Stopped at: Completed 02-02-PLAN.md — 2 tasks done, topic quiz live at /topic/{slug}/quiz.
 
 ### Next steps
 
-1. Continue Phase 2: Plan 02-02 (quiz mode using quiz_questions table)
+1. Continue Phase 2: Plan 02-03 if exists (exam questions feature using exam_questions table)
 2. Note blocker: identify past exam question source PDFs (Italian MUR or Alpha Test) before Phase 2 questions import task
