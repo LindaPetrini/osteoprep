@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Simulazione Esame - OsteoPrep{% endblock %}
+
+{% block content %}
+<div style="padding-top: 1rem;">
+  <h1 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Simulazione esame</h1>
+  <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem;">
+    Domande in stile professioni sanitarie (TOLC-B/TOLC-F)
+  </p>
+
+  {% if no_questions is defined and no_questions %}
+  <div class="alert" style="background-color: #fef3c7; border: 1px solid #fbbf24;">
+    <span>Nessuna domanda disponibile. Eseguire il seed delle domande d'esame.</span>
+  </div>
+  {% else %}
+  <!-- Exam info card -->
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="padding: 1.25rem; margin-bottom: 1.25rem;">
+    <h2 style="font-weight: 700; margin-bottom: 0.75rem;">Formato della simulazione</h2>
+    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+      <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+        <span style="color: #4f46e5; font-weight: 700;">{{ total_questions }}</span>
+        <span style="color: #374151;">domande a risposta multipla</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+        <span style="color: #4f46e5; font-weight: 700;">{{ exam_duration_minutes }} min</span>
+        <span style="color: #374151;">tempo disponibile (conto alla rovescia visibile)</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+        <span style="color: #4f46e5;">✓</span>
+        <span style="color: #374151;">4 opzioni per ogni domanda, una sola corretta</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+        <span style="color: #4f46e5;">✓</span>
+        <span style="color: #374151;">Spiegazioni AI per tutte le risposte al termine</span>
+      </li>
+      <li style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.9375rem;">
+        <span style="color: #dc2626;">!</span>
+        <span style="color: #374151;">La simulazione si chiude automaticamente alla scadenza del tempo</span>
+      </li>
+    </ul>
+  </div>
+
+  <a href="/exam/practice" class="btn btn-primary w-full" style="min-height: 44px; font-size: 1rem;">
+    Inizia simulazione
+  </a>
+
+  <!-- Score history -->
+  {% if history %}
+  <div style="margin-top: 1.75rem;">
+    <h2 style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 0.75rem; color: #374151;">Simulazioni precedenti</h2>
+    <div class="card bg-base-100 shadow-sm border border-base-300" style="overflow: hidden;">
+      {% for attempt in history %}
+      <div style="display: flex; justify-content: space-between; align-items: center;
+                  padding: 0.625rem 1rem;
+                  border-bottom: {% if not loop.last %}1px solid #e5e7eb{% else %}none{% endif %};">
+        <div>
+          <span style="font-size: 0.8125rem; color: #6b7280;">
+            {{ attempt.started_at.strftime('%d/%m/%Y %H:%M') }}
+          </span>
+          {% if attempt.time_expired %}
+          <span style="font-size: 0.6875rem; color: #dc2626; margin-left: 0.5rem;">(tempo scaduto)</span>
+          {% endif %}
+        </div>
+        <span style="font-weight: 700; font-size: 0.9375rem;
+                     color: {% if attempt.score is not none and attempt.score >= 14 %}#16a34a{% elif attempt.score is not none %}#d97706{% else %}#9ca3af{% endif %};">
+          {% if attempt.score is not none %}{{ attempt.score }}/20{% else %}—{% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

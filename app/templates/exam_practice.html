@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Simulazione in corso - OsteoPrep{% endblock %}
+
+{% block content %}
+<!-- Sticky exam header with timer -->
+<div class="sticky top-0 z-10 bg-base-100 border-b border-base-300"
+     style="margin-left: -1.5rem; margin-right: -1.5rem; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+  <div>
+    <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Simulazione esame</p>
+    <p style="font-size: 0.8125rem; font-weight: 600; color: #374151; margin: 0;">{{ question_count }} domande</p>
+  </div>
+  <div style="text-align: right;">
+    <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Tempo rimanente</p>
+    <p id="exam-timer" style="font-size: 1.25rem; font-weight: 800; color: #374151; margin: 0; font-variant-numeric: tabular-nums;">
+      90:00
+    </p>
+  </div>
+</div>
+
+<!-- 10-minute warning (hidden by default, shown by JS) -->
+<div id="exam-warning" class="alert"
+     style="display: none; background-color: #fef3c7; border: 1px solid #fbbf24; margin-top: 0.75rem;">
+  <span style="font-weight: 600;">Attenzione: mancano 10 minuti alla fine!</span>
+</div>
+
+<!-- Exam form -->
+<form id="exam-form"
+      hx-post="/exam/submit"
+      hx-target="body"
+      hx-swap="outerHTML"
+      hx-push-url="/exam/results"
+      data-start-time="{{ start_time_epoch }}"
+      data-duration="{{ duration_seconds }}"
+      style="margin-top: 1rem;">
+
+  <!-- Hidden: all question IDs for server-side result processing -->
+  <input type="hidden" name="question_ids" value="{{ questions | map(attribute='id') | join(',') }}">
+  <!-- Hidden: time_expired flag, set to "1" by JS on timer expiry -->
+  <input type="hidden" id="time-expired-field" name="time_expired" value="0">
+
+  {% for q in questions %}
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;">
+    <p style="font-weight: 600; margin-bottom: 0.875rem; line-height: 1.4; font-size: 0.9375rem;">
+      {{ loop.index }}. {{ q.question_it }}
+    </p>
+    {% for choice in q.choices %}
+    <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.5rem 0; cursor: pointer; min-height: 44px;">
+      <input type="radio" name="answer_{{ q.id }}" value="{{ loop.index0 }}"
+             class="radio radio-primary" style="margin-top: 0.125rem; flex-shrink: 0;">
+      <span style="font-size: 0.9375rem; line-height: 1.4;">{{ choice }}</span>
+    </label>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem; font-size: 1rem;">
+    Consegna esame
+  </button>
+</form>
+
+<script>
+(function() {
+  const form = document.getElementById('exam-form');
+  const timerEl = document.getElementById('exam-timer');
+  const warningEl = document.getElementById('exam-warning');
+  const timeExpiredField = document.getElementById('time-expired-field');
+
+  // Use server-side start time for accurate remaining calculation
+  const startTime = parseInt(form.dataset.startTime, 10);
+  const duration = parseInt(form.dataset.duration, 10);
+
+  function getRemaining() {
+    const now = Math.floor(Date.now() / 1000);
+    return Math.max(0, startTime + duration - now);
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  // Update timer display immediately
+  timerEl.textContent = formatTime(getRemaining());
+
+  const interval = setInterval(function() {
+    const remaining = getRemaining();
+    timerEl.textContent = formatTime(remaining);
+
+    // Red timer at 5 minutes
+    if (remaining <= 300) {
+      timerEl.style.color = '#dc2626';
+    }
+
+    // Show warning at 10 minutes
+    if (remaining <= 600 && remaining > 0) {
+      warningEl.style.display = 'flex';
+    }
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      timeExpiredField.value = '1';
+      // Use htmx.trigger for reliable programmatic HTMX form submission
+      htmx.trigger(form, 'submit');
+    }
+  }, 1000);
+})();
+</script>
+{% endblock %}
