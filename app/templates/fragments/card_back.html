@@ -10,7 +10,7 @@
   </div>
 
   <!-- Rating buttons — full width row, 44px min height -->
-  <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem; margin-bottom: 0.5rem; text-align: center;">Com'e' andata?</p>
+  <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem; margin-bottom: 0.5rem; text-align: center;">Com'e' andata? <span style="color: #9ca3af;">(1-4)</span></p>
   <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
     {% for label, value, color in [("Di nuovo", 1, "#ef4444"), ("Difficile", 2, "#f97316"), ("Bene", 3, "#22c55e"), ("Facile", 4, "#3b82f6")] %}
     <form hx-post="/review/cards/{{ srs_state.id }}/rate" hx-target="#card-container" hx-swap="outerHTML">
@@ -18,10 +18,30 @@
       <input type="hidden" name="session_ids" value="{{ session_ids }}">
       <input type="hidden" name="current_index" value="{{ current_index }}">
       <input type="hidden" name="total" value="{{ total }}">
-      <button type="submit" class="btn w-full" style="min-height: 44px; background-color: {{ color }}; color: white; border: none; font-size: 0.75rem;">
+      <input type="hidden" name="subject" value="{{ subject | default('') }}">
+      <input type="hidden" name="mode" value="{{ mode | default('due') }}">
+      <button type="submit" id="rating-btn-{{ value }}" class="btn w-full" style="min-height: 44px; background-color: {{ color }}; color: white; border: none; font-size: 0.75rem;">
         {{ label }}
       </button>
     </form>
     {% endfor %}
   </div>
 </div>
+<script>
+(function() {
+  var keyMap = {'1': 1, '2': 2, '3': 3, '4': 4};
+  function handleKey(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    var val = keyMap[e.key];
+    if (val !== undefined) {
+      var btn = document.getElementById('rating-btn-' + val);
+      if (btn) btn.click();
+    }
+  }
+  document.addEventListener('keydown', handleKey);
+  document.addEventListener('htmx:beforeSwap', function cleanup() {
+    document.removeEventListener('keydown', handleKey);
+    document.removeEventListener('htmx:beforeSwap', cleanup);
+  }, {once: true});
+})();
+</script>

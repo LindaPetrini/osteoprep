@@ -13,7 +13,19 @@
   </a>
 </div>
 
-<div style="display: flex; flex-direction: column; gap: 0.75rem;">
+<!-- Topic search -->
+<div style="margin-bottom: 1rem;">
+  <input type="search" id="topic-search" placeholder="Cerca argomento..."
+         style="width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.9375rem; box-sizing: border-box;"
+         hx-get="/search"
+         hx-target="#search-results"
+         hx-trigger="input changed delay:300ms, search"
+         name="q"
+         autocomplete="off">
+  <div id="search-results"></div>
+</div>
+
+<div id="subject-accordions" style="display: flex; flex-direction: column; gap: 0.75rem;">
   {% for subject in subjects %}
   <div class="collapse collapse-arrow bg-base-100 border border-base-300 rounded-lg">
     <input type="checkbox" name="subject-{{ subject }}" class="peer" />
@@ -40,5 +52,12 @@
   </div>
   {% endfor %}
 </div>
+
+<script>
+document.getElementById('topic-search').addEventListener('input', function() {
+  document.getElementById('subject-accordions').style.display =
+    this.value.trim() ? 'none' : 'flex';
+});
+</script>
 
 {% endblock %}

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Quiz: {{ topic.title_it }} - OsteoPrep{% endblock %}
+{% block title %}{{ quiz_title }} - OsteoPrep{% endblock %}
 
 {% block content %}
 <div style="padding-top: 1rem;">
   <!-- Header -->
   <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
-    <a href="/topic/{{ topic.slug }}" style="color: #6b7280; font-size: 0.875rem; min-height: 44px; display: flex; align-items: center;">
+    <a href="{{ back_url }}" style="color: #6b7280; font-size: 0.875rem; min-height: 44px; display: flex; align-items: center;">
       &larr; Indietro
     </a>
     <h1 style="font-size: 1.125rem; font-weight: 700; flex: 1;">
-      Quiz: {{ topic.title_it }}
+      {{ quiz_title }}{% if question_count and question_count < 5 %} ({{ question_count }} domande){% endif %}
     </h1>
   </div>
 
@@ -19,15 +19,15 @@
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink: 0;">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
     </svg>
-    <span>Nessuna domanda disponibile per questo argomento. Le domande verranno aggiunte prossimamente.</span>
+    <span>Nessuna domanda disponibile. Le domande verranno aggiunte prossimamente.</span>
   </div>
-  <a href="/topic/{{ topic.slug }}" class="btn btn-primary w-full" style="margin-top: 1rem; min-height: 44px;">
-    Torna all'argomento
+  <a href="{{ back_url }}" class="btn btn-primary w-full" style="margin-top: 1rem; min-height: 44px;">
+    Indietro
   </a>
 
   {% else %}
   <!-- Quiz form -->
-  <form method="post" action="/topic/{{ topic.slug }}/quiz/submit">
+  <form method="post" action="{{ quiz_submit_url }}">
     {% for q in questions %}
     <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;">
       <p style="font-weight: 600; margin-bottom: 0.875rem; line-height: 1.4;">
@@ -43,16 +43,37 @@
     </div>
     {% endfor %}
 
+    <!-- Answer counter + submit -->
+    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #6b7280; margin-bottom: 0.75rem;">
+      <span id="quiz-answered">0</span> / {{ question_count }} risposte
+    </div>
     <button type="submit" id="quiz-submit-btn" class="btn btn-primary w-full" style="min-height: 44px; margin-top: 0.5rem;">
       Invia risposte
     </button>
   </form>
   <script>
-    document.querySelector('form').addEventListener('submit', function() {
-      var btn = document.getElementById('quiz-submit-btn');
-      btn.disabled = true;
-      btn.textContent = 'Elaborazione…';
-    });
+    (function() {
+      var form = document.querySelector('form');
+      var answeredEl = document.getElementById('quiz-answered');
+      var total = {{ question_count }};
+      function countAnswered() {
+        var names = new Set();
+        form.querySelectorAll('input[type="radio"]').forEach(function(r) { names.add(r.name); });
+        var answered = 0;
+        names.forEach(function(name) {
+          if (form.querySelector('input[name="' + name + '"]:checked')) answered++;
+        });
+        return answered;
+      }
+      form.addEventListener('change', function() {
+        answeredEl.textContent = countAnswered();
+      });
+      form.addEventListener('submit', function() {
+        var btn = document.getElementById('quiz-submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Elaborazione\u2026';
+      });
+    })();
   </script>
   {% endif %}
 </div>

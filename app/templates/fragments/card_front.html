@@ -7,11 +7,29 @@
     {% endif %}
   </div>
   <button
+    id="flip-btn"
     class="btn btn-primary w-full"
     style="margin-top: 1rem; min-height: 44px;"
-    hx-get="/review/cards/{{ srs_state.id }}/back?session_ids={{ session_ids | join(',') }}&current_index={{ current_index }}&total={{ total }}"
+    hx-get="/review/cards/{{ srs_state.id }}/back?session_ids={{ session_ids | join(',') }}&current_index={{ current_index }}&total={{ total }}&subject={{ subject | default('') }}&mode={{ mode | default('due') }}"
     hx-target="#card-container"
     hx-swap="outerHTML">
     Mostra risposta
   </button>
 </div>
+<script>
+(function() {
+  function handleKey(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      var btn = document.getElementById('flip-btn');
+      if (btn) btn.click();
+    }
+  }
+  document.addEventListener('keydown', handleKey);
+  document.addEventListener('htmx:beforeSwap', function cleanup() {
+    document.removeEventListener('keydown', handleKey);
+    document.removeEventListener('htmx:beforeSwap', cleanup);
+  }, {once: true});
+})();
+</script>

@@ -1,12 +1,13 @@
+import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import QuizAttempt, Topic
+from app.models import QuizAttempt, SectionQuestion, Topic
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,31 @@ async def subject_topics_fragment(
     )
 
 
+@router.get("/search", response_class=HTMLResponse)
+async def search_topics(request: Request, q: str = "", db: AsyncSession = Depends(get_db)):
+    """HTMX fragment: topic search results. Returns empty response for blank query."""
+    if not q.strip():
+        return HTMLResponse("")
+
+    q_lower = q.lower().strip()
+    result = await db.execute(
+        select(Topic).where(
+            or_(
+                func.lower(Topic.title_it).contains(q_lower),
+                func.lower(Topic.title_en).contains(q_lower),
+                func.lower(Topic.subject).contains(q_lower),
+            )
+        ).order_by(Topic.subject, Topic.order_in_subject)
+    )
+    topics = result.scalars().all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="fragments/search_results.html",
+        context={"topics": topics, "q": q},
+    )
+
+
 @router.get("/topic/{slug}/content", response_class=HTMLResponse)
 async def topic_content_fragment(
     request: Request,
@@ -69,8 +95,22 @@ async def topic_content_fragment(
     if lang not in ("it", "en"):
         lang = "it"
 
+    sq_result = await db.execute(
+        select(SectionQuestion).where(SectionQuestion.topic_slug == slug)
+    )
+    section_questions = {
+        sq.section_slug: {
+            "id": sq.id,
+            "question_it": sq.question_it,
+            "choices": json.loads(sq.choices_json),
+            "correct_index": sq.correct_index,
+            "topic_slug": sq.topic_slug,
+        }
+        for sq in sq_result.scalars().all()
+    }
+
     return templates.TemplateResponse(
         request=request,
         name="fragments/explainer_content.html",
-        context={"topic": topic, "lang": lang},
+        context={"topic": topic, "lang": lang, "section_questions": section_questions},
     )

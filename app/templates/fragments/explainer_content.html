@@ -1,7 +1,63 @@
 {% set content = topic.content_it if lang == "it" else topic.content_en %}
+{% set sq_map = section_questions if section_questions is defined else {} %}
 
 {% if content %}
-{# Content ready — render markdown + uncertainty markers #}
+{% set sections = content | split_sections %}
+{% if sections | length > 1 %}
+{# Multiple sections — render as collapsible panels #}
+<div style="display: flex; flex-direction: column; gap: 0.5rem;">
+  {% for section in sections %}
+  {% if section.heading %}
+  <div class="collapse collapse-arrow bg-base-100 border border-base-300 rounded-lg">
+    <input type="checkbox" {% if loop.first %}checked{% endif %} />
+    <div class="collapse-title font-semibold text-base-content min-h-[44px] flex items-center">
+      {{ section.heading }}
+    </div>
+    <div class="collapse-content">
+      <div class="prose max-w-none text-base-content leading-relaxed
+                  prose-headings:text-base-content prose-headings:font-bold
+                  prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
+           style="font-size: 1rem;">
+        {{ section.body | render_content | safe }}
+      </div>
+      {# Inline section micro-question — shown if available #}
+      {% set sq = sq_map.get(section.slug) %}
+      {% if sq %}
+      <div id="sq-{{ sq.id }}" class="card bg-base-200 border border-base-300" style="margin-top: 1rem; padding: 1rem;">
+        <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">Verifica rapida</p>
+        <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ sq.question_it }}</p>
+        <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}"
+              hx-target="#sq-{{ sq.id }}"
+              hx-swap="outerHTML">
+          {% for choice in sq.choices %}
+          <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
+            <input type="radio" name="answer" value="{{ loop.index0 }}"
+                   class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
+            <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
+          </label>
+          {% endfor %}
+          <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
+            Controlla
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  {# Intro text before first heading — render flat #}
+  <div class="prose max-w-none text-base-content leading-relaxed
+              prose-headings:text-base-content prose-headings:font-bold
+              prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
+       style="font-size: 1rem;">
+    {{ section.body | render_content | safe }}
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
+{% else %}
+{# No ## headings found — render flat prose #}
 <div class="prose max-w-none text-base-content leading-relaxed
             prose-headings:text-base-content prose-headings:font-bold
             prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:border-b prose-h2:border-base-300 prose-h2:pb-1
@@ -9,6 +65,7 @@
      style="font-size: 1rem;">
   {{ content | render_content | safe }}
 </div>
+{% endif %}
 
 {% else %}
 {# Content not yet generated — poll every 2s until it appears #}

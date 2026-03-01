@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Risultati Quiz: {{ topic.title_it }} - OsteoPrep{% endblock %}
+{% block title %}{{ quiz_title }} - OsteoPrep{% endblock %}
 
 {% block content %}
 <div style="padding-top: 1rem;">
   <!-- Header -->
   <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
-    <a href="/topic/{{ topic.slug }}" style="color: #6b7280; font-size: 0.875rem; min-height: 44px; display: flex; align-items: center;">
-      &larr; Argomento
+    <a href="{{ back_url }}" style="color: #6b7280; font-size: 0.875rem; min-height: 44px; display: flex; align-items: center;">
+      &larr; Indietro
     </a>
     <h1 style="font-size: 1.125rem; font-weight: 700; flex: 1;">
-      Risultati: {{ topic.title_it }}
+      {{ quiz_title }}
     </h1>
   </div>
 
@@ -29,11 +29,11 @@
       {% endif %}
     </p>
     <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem;">
-      <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary btn-sm" style="min-height: 44px;">
+      <a href="{{ retry_url }}" class="btn btn-primary btn-sm" style="min-height: 44px;">
         Riprova il quiz
       </a>
-      <a href="/topic/{{ topic.slug }}" class="btn btn-ghost btn-sm" style="min-height: 44px;">
-        Torna all'argomento
+      <a href="{{ back_url }}" class="btn btn-ghost btn-sm" style="min-height: 44px;">
+        Indietro
       </a>
     </div>
   </div>

@@ -264,6 +264,110 @@ async def generate_exam_explanation(
     }
 
 
+SECTION_QUESTION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, osteopatia).
+
+Per ogni sezione del riassunto di un argomento, genera UNA domanda a scelta multipla (MCQ) IN ITALIANO che testa la comprensione di quella sezione.
+
+REGOLE:
+- Ogni domanda deve testare un concetto specifico e verificabile dalla sezione
+- 4 opzioni: una corretta, tre sbagliate plausibili
+- Le opzioni sbagliate devono essere plausibili ma chiaramente errate per chi ha capito il concetto
+- Domande concise: max 2 righe
+- Opzioni concise: max 1 riga ciascuna
+
+OUTPUT FORMAT — usa questi tag XML esatti, uno per sezione:
+<definizione>
+<domanda>Testo della domanda</domanda>
+<opt_a>Prima opzione</opt_a>
+<opt_b>Seconda opzione</opt_b>
+<opt_c>Terza opzione</opt_c>
+<opt_d>Quarta opzione</opt_d>
+<corretta>a</corretta>
+</definizione>
+
+Sezioni da generare: definizione, struttura, meccanismo, dati_chiave, importanza, connessioni, focus_esame
+Genera solo le sezioni presenti nel contenuto. Usa il tag corrispondente al slug della sezione."""
+
+
+async def generate_section_questions(
+    topic_slug: str,
+    title_it: str,
+    content_it: str,
+) -> dict[str, dict]:
+    """
+    Generate one MCQ per ## section for a topic.
+    Returns dict: {section_slug: {question_it, choices, correct_index}}
+
+    Fires once per topic — caller must check no section questions exist yet.
+    """
+    from app.templates_config import split_sections, SECTION_SLUG_MAP
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+
+    # Extract section slugs present in content
+    sections = split_sections(content_it)
+    section_slugs = [s["slug"] for s in sections if s["heading"]]
+    if not section_slugs:
+        return {}
+
+    client = AsyncAnthropic(api_key=api_key)
+    logger.info(f"Generating section questions for: {topic_slug} ({len(section_slugs)} sections)")
+
+    user_msg = (
+        f"Argomento: {title_it}\n\n"
+        f"Contenuto:\n{content_it[:3000]}\n\n"
+        f"Genera UNA domanda MCQ per ciascuna di queste sezioni: {', '.join(section_slugs)}"
+    )
+
+    response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        system=SECTION_QUESTION_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_msg}],
+    )
+    raw = response.content[0].text
+
+    results = {}
+    for slug in section_slugs:
+        # Match tag by slug name (e.g. <definizione>...</definizione>)
+        pattern = rf"<{re.escape(slug)}>(.*?)</{re.escape(slug)}>"
+        m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
+        if not m:
+            continue
+        block = m.group(1)
+
+        q_m = re.search(r"<domanda>(.*?)</domanda>", block, re.DOTALL)
+        a_m = re.search(r"<opt_a>(.*?)</opt_a>", block, re.DOTALL)
+        b_m = re.search(r"<opt_b>(.*?)</opt_b>", block, re.DOTALL)
+        c_m = re.search(r"<opt_c>(.*?)</opt_c>", block, re.DOTALL)
+        d_m = re.search(r"<opt_d>(.*?)</opt_d>", block, re.DOTALL)
+        cor_m = re.search(r"<corretta>(.*?)</corretta>", block, re.DOTALL)
+
+        if not all([q_m, a_m, b_m, c_m, d_m, cor_m]):
+            logger.warning(f"Section question parse failed for {topic_slug}/{slug}")
+            continue
+
+        choices = [
+            a_m.group(1).strip(),
+            b_m.group(1).strip(),
+            c_m.group(1).strip(),
+            d_m.group(1).strip(),
+        ]
+        correct_letter = cor_m.group(1).strip().lower()
+        correct_index = {"a": 0, "b": 1, "c": 2, "d": 3}.get(correct_letter, 0)
+
+        results[slug] = {
+            "question_it": q_m.group(1).strip(),
+            "choices": choices,
+            "correct_index": correct_index,
+        }
+
+    logger.info(f"Section questions generated for {topic_slug}: {list(results.keys())}")
+    return results
+
+
 async def build_chat_system_prompt(topic_slug: str, db) -> str:
     """Build context-aware system prompt for chat (CHAT-03 + CHAT-04)."""
     from sqlalchemy import select

@@ -1,6 +1,8 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Text, DateTime, Integer, ForeignKey, Boolean
 from datetime import datetime
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column
+
 from app.database import Base
 
 class Topic(Base):
@@ -49,8 +51,9 @@ class QuizQuestion(Base):
 class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    topic_slug: Mapped[str] = mapped_column(String(100), ForeignKey("topics.slug"), nullable=False, index=True)
-    score: Mapped[int] = mapped_column(Integer, nullable=False)       # 0-5
+    topic_slug: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
+    subject: Mapped[str | None] = mapped_column(String(50), nullable=True, index=True)
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
     max_score: Mapped[int] = mapped_column(Integer, nullable=False, default=5)
     attempted_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
@@ -84,3 +87,15 @@ class PracticeTestAnswer(Base):
     question_id: Mapped[int] = mapped_column(Integer, ForeignKey("exam_questions.id"), nullable=False)
     chosen_index: Mapped[int | None] = mapped_column(Integer, nullable=True)  # NULL = skipped/timed out
     is_correct: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+
+
+class SectionQuestion(Base):
+    """One inline MCQ per topic section — generate-once-cache, no answer tracking."""
+    __tablename__ = "section_questions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    topic_slug: Mapped[str] = mapped_column(String(100), ForeignKey("topics.slug"), nullable=False, index=True)
+    section_slug: Mapped[str] = mapped_column(String(100), nullable=False)
+    question_it: Mapped[str] = mapped_column(Text, nullable=False)
+    choices_json: Mapped[str] = mapped_column(Text, nullable=False)   # JSON list of 4 strings
+    correct_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    __table_args__ = (UniqueConstraint("topic_slug", "section_slug", name="uq_section_question"),)

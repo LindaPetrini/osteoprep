@@ -43,24 +43,23 @@
 
 {# Wikipedia image + link (optional — shown only if Wikimedia returned a result) #}
 {% if wiki and wiki.image %}
-<div class="flex gap-3 mb-4 items-start">
+<div style="margin-bottom: 1.25rem;">
   <img src="{{ wiki.image }}" alt="{{ topic.title_en }}"
-       class="w-24 h-24 object-cover rounded-lg border border-base-300 flex-shrink-0">
-  <div class="flex flex-col gap-1 justify-center">
-    <span class="text-xs text-base-content/50 uppercase tracking-wide">Wikipedia</span>
-    <a href="{{ wiki.url }}" target="_blank" rel="noopener"
-       class="text-sm text-primary underline leading-snug">
-      {{ wiki.title }}
+       class="w-full rounded-lg object-cover"
+       style="max-height: 220px;"
+       loading="lazy">
+  <p style="font-size: 0.75rem; color: #9ca3af; text-align: right; margin-top: 0.25rem;">
+    <a href="{{ wiki.url }}" target="_blank" rel="noopener" style="color: #9ca3af; text-decoration: underline;">
+      Wikipedia: {{ wiki.title }}
     </a>
-    <span class="text-xs text-base-content/40">Immagini e approfondimenti →</span>
-  </div>
+  </p>
 </div>
 {% elif wiki and wiki.url %}
 {# No image but article found #}
-<div class="mb-4">
+<div style="margin-bottom: 1rem;">
   <a href="{{ wiki.url }}" target="_blank" rel="noopener"
      class="text-xs text-primary underline">
-    📖 Wikipedia: {{ wiki.title }}
+    Wikipedia: {{ wiki.title }}
   </a>
 </div>
 {% endif %}
@@ -70,11 +69,16 @@
   {% include "fragments/explainer_content.html" %}
 </div>
 
-{# Quiz entry point — always shown #}
+{# Quiz entry point — two-button row #}
 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-  <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary w-full" style="min-height: 44px;">
-    Fai un quiz su questo argomento
-  </a>
+  <div style="display: flex; gap: 0.5rem;">
+    <a href="/topic/{{ topic.slug }}/quiz?count=2" class="btn btn-outline flex-1" style="min-height: 44px;">
+      Quick Check (2)
+    </a>
+    <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary flex-1" style="min-height: 44px;">
+      Quiz (5)
+    </a>
+  </div>
 </div>
 
 {# AI Chat panel — CHAT-01 through CHAT-04 #}

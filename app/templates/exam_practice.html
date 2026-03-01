@@ -2,18 +2,30 @@
 {% block title %}Simulazione in corso - OsteoPrep{% endblock %}
 
 {% block content %}
-<!-- Sticky exam header with timer -->
+<!-- Sticky exam header with timer + progress -->
 <div class="sticky top-0 z-10 bg-base-100 border-b border-base-300"
-     style="margin-left: -1.5rem; margin-right: -1.5rem; padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-  <div>
-    <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Simulazione esame</p>
-    <p style="font-size: 0.8125rem; font-weight: 600; color: #374151; margin: 0;">{{ question_count }} domande</p>
+     style="margin-left: -1.5rem; margin-right: -1.5rem; padding: 0.75rem 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Simulazione esame</p>
+      <p style="font-size: 0.8125rem; font-weight: 600; color: #374151; margin: 0;">{{ question_count }} domande</p>
+    </div>
+    <div style="text-align: right;">
+      <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Tempo rimanente</p>
+      <p id="exam-timer" style="font-size: 1.25rem; font-weight: 800; color: #374151; margin: 0; font-variant-numeric: tabular-nums;">
+        90:00
+      </p>
+    </div>
   </div>
-  <div style="text-align: right;">
-    <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">Tempo rimanente</p>
-    <p id="exam-timer" style="font-size: 1.25rem; font-weight: 800; color: #374151; margin: 0; font-variant-numeric: tabular-nums;">
-      90:00
-    </p>
+  <!-- Answer progress bar -->
+  <div style="margin-top: 0.5rem;">
+    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">
+      <span>Risposte</span>
+      <span id="progress-text">0 / {{ question_count }}</span>
+    </div>
+    <div style="height: 4px; background-color: #e5e7eb; border-radius: 9999px; overflow: hidden;">
+      <div id="exam-progress-bar" style="height: 100%; width: 0%; background-color: oklch(var(--p)); border-radius: 9999px; transition: width 0.3s ease;"></div>
+    </div>
   </div>
 </div>
 
@@ -61,6 +73,37 @@
     btn.disabled = true;
     btn.textContent = 'Elaborazione…';
   });
+</script>
+
+<script>
+(function() {
+  const form = document.getElementById('exam-form');
+  const progressBar = document.getElementById('exam-progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const examTotal = {{ question_count }};
+
+  function countAnswered() {
+    const names = new Set();
+    form.querySelectorAll('input[type="radio"]').forEach(function(r) { names.add(r.name); });
+    let answered = 0;
+    names.forEach(function(name) {
+      if (form.querySelector('input[name="' + name + '"]:checked')) answered++;
+    });
+    return answered;
+  }
+
+  function updateProgress() {
+    const answered = countAnswered();
+    const pct = (answered / examTotal) * 100;
+    progressText.textContent = answered + ' / ' + examTotal;
+    progressBar.style.width = pct + '%';
+    progressBar.style.backgroundColor = answered >= examTotal
+      ? 'oklch(var(--su))'
+      : 'oklch(var(--p))';
+  }
+
+  form.addEventListener('change', updateProgress);
+})();
 </script>
 
 <script>

@@ -1,4 +1,16 @@
 {% if topics %}
+<div class="px-2 pt-2">
+  <a href="/subject/{{ subject }}/quiz"
+     class="btn btn-outline btn-sm w-full" style="min-height: 44px;">
+    Quiz
+    {% if subject == "biology" %}Biologia
+    {% elif subject == "chemistry" %}Chimica
+    {% elif subject == "physics" %}Fisica e Matematica
+    {% elif subject == "logic" %}Logica
+    {% else %}{{ subject }}{% endif %}
+    — 10 domande miste
+  </a>
+</div>
 <ul class="menu menu-sm w-full p-2">
   {% for topic in topics %}
   <li>

@@ -1,0 +1,21 @@
+{% if topics %}
+<ul style="list-style: none; padding: 0; margin: 0.5rem 0; border: 1px solid #e5e7eb; border-radius: 0.5rem; overflow: hidden;">
+  {% for topic in topics %}
+  <li>
+    <a href="/topic/{{ topic.slug }}"
+       style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; min-height: 44px; text-decoration: none; background-color: white; border-bottom: {% if not loop.last %}1px solid #e5e7eb{% else %}none{% endif %};">
+      <span style="font-size: 0.9375rem; color: #111827;">{{ topic.title_it }}</span>
+      <span class="badge badge-ghost badge-sm">
+        {% if topic.subject == "biology" %}Biologia
+        {% elif topic.subject == "chemistry" %}Chimica
+        {% elif topic.subject == "physics" %}Fisica
+        {% elif topic.subject == "logic" %}Logica
+        {% else %}{{ topic.subject }}{% endif %}
+      </span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p style="color: #9ca3af; font-size: 0.875rem; padding: 0.75rem 0.5rem;">Nessun risultato per "{{ q }}".</p>
+{% endif %}
