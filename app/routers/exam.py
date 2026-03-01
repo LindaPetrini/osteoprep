@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from random import sample
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from sqlalchemy import select
+from fastapi.responses import HTMLResponse, RedirectResponse
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 EXAM_DURATION_SECONDS = 90 * 60   # 90 minutes
-EXAM_QUESTION_COUNT = 20           # Use all 20 seeded questions (or min of available)
+EXAM_QUESTION_COUNT = 20           # Questions per practice session
 
 
 @router.get("/exam", response_class=HTMLResponse)
@@ -100,6 +100,12 @@ async def exam_practice(request: Request, db: AsyncSession = Depends(get_db)):
             "due_count": due_count,
         },
     )
+
+
+@router.get("/exam/submit", response_class=HTMLResponse)
+async def exam_submit_get(request: Request):
+    """Redirect bookmarks/back-navigation to /exam (submit is POST-only)."""
+    return RedirectResponse("/exam", status_code=302)
 
 
 @router.post("/exam/submit", response_class=HTMLResponse)
@@ -240,16 +246,179 @@ async def exam_submit(request: Request, db: AsyncSession = Depends(get_db)):
     attempt.score = score
     await db.commit()
 
+    return RedirectResponse(f"/exam/results/{attempt.id}", status_code=303)
+
+
+@router.get("/exam/results/{attempt_id}", response_class=HTMLResponse)
+async def exam_results(
+    request: Request,
+    attempt_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    """Results page for a completed practice test — loadable by GET (bookmark-safe)."""
+    attempt = await db.get(PracticeTestAttempt, attempt_id)
+    if attempt is None:
+        raise HTTPException(status_code=404, detail="Tentativo non trovato")
+
+    answers_result = await db.execute(
+        select(PracticeTestAnswer).where(PracticeTestAnswer.attempt_id == attempt_id)
+    )
+    answers = {a.question_id: a for a in answers_result.scalars().all()}
+
+    questions_result = await db.execute(
+        select(ExamQuestion).where(ExamQuestion.id.in_(answers.keys()))
+    )
+    questions = {q.id: q for q in questions_result.scalars().all()}
+
+    results_data = []
+    for qid, answer in answers.items():
+        q = questions.get(qid)
+        if q is None:
+            continue
+        chosen = answer.chosen_index
+        is_correct = bool(answer.is_correct) if chosen is not None else False
+
+        choices = json.loads(q.choices_json)
+        explanation = json.loads(q.explanation_json) if q.explanation_json else {}
+
+        wrong_idx = 0
+        per_choice_explanations = []
+        for i, choice_text in enumerate(choices):
+            if i == q.correct_index:
+                per_choice_explanations.append({
+                    "text": choice_text,
+                    "is_correct": True,
+                    "is_chosen": chosen == i,
+                    "explanation": explanation.get("correct", ""),
+                })
+            else:
+                per_choice_explanations.append({
+                    "text": choice_text,
+                    "is_correct": False,
+                    "is_chosen": chosen == i,
+                    "explanation": explanation.get(f"wrong_{wrong_idx}", ""),
+                })
+                wrong_idx += 1
+
+        results_data.append({
+            "question_it": q.question_it,
+            "chosen_index": chosen,
+            "correct_index": q.correct_index,
+            "is_correct": is_correct,
+            "skipped": chosen is None,
+            "choices": per_choice_explanations,
+        })
+
+    wrong_count = sum(1 for r in results_data if not r["is_correct"] and not r["skipped"])
+
     due_count = await fsrs_service.get_due_count(db)
     return templates.TemplateResponse(
         request=request,
         name="exam_results.html",
         context={
-            "score": score,
-            "max_score": len(all_question_ids),
-            "time_expired": time_expired,
+            "score": attempt.score or 0,
+            "max_score": len(answers),
+            "time_expired": attempt.time_expired,
             "results": results_data,
             "attempt_id": attempt.id,
+            "wrong_count": wrong_count,
+            "active_tab": "exam",
+            "due_count": due_count,
+        },
+    )
+
+
+@router.get("/exam/review", response_class=HTMLResponse)
+async def exam_review(
+    request: Request,
+    subject: str | None = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Review page — all questions answered incorrectly across all past attempts.
+    Shows each wrong question once (most recent incorrect attempt).
+    Filterable by subject.
+    """
+    # Subquery: for each question answered wrong, get most recent attempt date
+    wrong_answers = await db.execute(
+        select(
+            PracticeTestAnswer.question_id,
+            func.max(PracticeTestAttempt.submitted_at).label("last_wrong_at"),
+            func.count(PracticeTestAnswer.id).label("times_wrong"),
+        )
+        .join(PracticeTestAttempt, PracticeTestAnswer.attempt_id == PracticeTestAttempt.id)
+        .where(PracticeTestAnswer.is_correct == False)  # noqa: E712
+        .group_by(PracticeTestAnswer.question_id)
+    )
+    wrong_rows = wrong_answers.all()
+
+    if not wrong_rows:
+        due_count = await fsrs_service.get_due_count(db)
+        return templates.TemplateResponse(
+            request=request,
+            name="exam_review.html",
+            context={
+                "questions": [],
+                "subject_filter": subject,
+                "subjects": [],
+                "active_tab": "exam",
+                "due_count": due_count,
+            },
+        )
+
+    wrong_qids = {row.question_id: row for row in wrong_rows}
+
+    q_query = select(ExamQuestion).where(ExamQuestion.id.in_(wrong_qids.keys()))
+    if subject:
+        q_query = q_query.where(ExamQuestion.subject == subject)
+    q_result = await db.execute(q_query)
+    questions_raw = q_result.scalars().all()
+
+    # Build display data
+    questions_data = []
+    for q in sorted(questions_raw, key=lambda x: wrong_qids[x.id].last_wrong_at, reverse=True):
+        choices = json.loads(q.choices_json)
+        explanation = json.loads(q.explanation_json) if q.explanation_json else {}
+        wrong_idx = 0
+        choices_data = []
+        for i, text in enumerate(choices):
+            is_correct = i == q.correct_index
+            choices_data.append({
+                "text": text,
+                "is_correct": is_correct,
+                "explanation": explanation.get("correct" if is_correct else f"wrong_{wrong_idx}", ""),
+            })
+            if not is_correct:
+                wrong_idx += 1
+        questions_data.append({
+            "id": q.id,
+            "question_it": q.question_it,
+            "subject": q.subject,
+            "topic_slug": q.topic_slug,
+            "choices": choices_data,
+            "correct_index": q.correct_index,
+            "times_wrong": wrong_qids[q.id].times_wrong,
+            "last_wrong_at": wrong_qids[q.id].last_wrong_at,
+            "has_explanation": bool(q.explanation_json),
+        })
+
+    # Available subjects for filter tabs
+    all_subjects_result = await db.execute(
+        select(ExamQuestion.subject)
+        .where(ExamQuestion.id.in_(wrong_qids.keys()))
+        .distinct()
+    )
+    subjects = sorted([r[0] for r in all_subjects_result.all()])
+
+    due_count = await fsrs_service.get_due_count(db)
+    return templates.TemplateResponse(
+        request=request,
+        name="exam_review.html",
+        context={
+            "questions": questions_data,
+            "subject_filter": subject,
+            "subjects": subjects,
+            "total_wrong": len(wrong_qids),
             "active_tab": "exam",
             "due_count": due_count,
         },

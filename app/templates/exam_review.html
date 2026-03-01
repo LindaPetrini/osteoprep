@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Rivedi errori - OsteoPrep{% endblock %}
+
+{% block content %}
+<div style="padding-top: 1rem;">
+  <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+    <a href="/exam" style="color: #6b7280; font-size: 0.875rem;">← Esame</a>
+  </div>
+  <h1 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Rivedi gli errori</h1>
+
+  {% if not questions and not subject_filter %}
+  <p style="color: #6b7280; font-size: 0.875rem; margin-top: 1rem;">
+    Nessun errore registrato ancora. Completa almeno una simulazione prima.
+  </p>
+  {% else %}
+
+  <!-- Summary + filter -->
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+    <p style="color: #6b7280; font-size: 0.875rem; margin: 0;">
+      {% if subject_filter %}
+        {{ questions|length }} domanda{{ 'e' if questions|length != 1 else '' }} errata{{ 'e' if questions|length != 1 else '' }} in <strong>{{ subject_filter }}</strong>
+        &nbsp;·&nbsp;<a href="/exam/review" style="color: #4f46e5;">mostra tutte</a>
+      {% else %}
+        {{ total_wrong }} domanda{{ 'e' if total_wrong != 1 else '' }} errata{{ 'e' if total_wrong != 1 else '' }} in totale
+      {% endif %}
+    </p>
+
+    {% if subjects|length > 1 %}
+    <div style="display: flex; gap: 0.375rem; flex-wrap: wrap;">
+      <a href="/exam/review"
+         style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 600;
+                {% if not subject_filter %}background: #4f46e5; color: #fff;{% else %}background: #f3f4f6; color: #374151;{% endif %}">
+        Tutte
+      </a>
+      {% for s in subjects %}
+      <a href="/exam/review?subject={{ s }}"
+         style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 600;
+                {% if subject_filter == s %}background: #4f46e5; color: #fff;{% else %}background: #f3f4f6; color: #374151;{% endif %}">
+        {{ s|capitalize }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if not questions %}
+  <p style="color: #6b7280; font-size: 0.875rem;">Nessun errore in questo argomento.</p>
+  {% else %}
+
+  <!-- Question list -->
+  {% for q in questions %}
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem;">
+      <p style="font-weight: 600; line-height: 1.4; font-size: 0.9375rem; margin: 0;">{{ q.question_it }}</p>
+      <span style="flex-shrink: 0; font-size: 0.75rem; color: #dc2626; font-weight: 600; white-space: nowrap;">
+        ✗ ×{{ q.times_wrong }}
+      </span>
+    </div>
+
+    <!-- Choices -->
+    {% for choice in q.choices %}
+    <div style="padding: 0.5rem 0.75rem; border-radius: 0.5rem; margin-bottom: 0.375rem;
+                background-color: {% if choice.is_correct %}#dcfce7{% else %}#f9fafb{% endif %};
+                border: 1px solid {% if choice.is_correct %}#86efac{% else %}#e5e7eb{% endif %};">
+      <p style="font-size: 0.9rem; font-weight: {% if choice.is_correct %}600{% else %}400{% endif %}; margin: 0 0 {% if choice.explanation %}0.2rem{% else %}0{% endif %} 0;">
+        {% if choice.is_correct %}✓ {% endif %}{{ choice.text }}
+      </p>
+      {% if choice.explanation %}
+      <p style="font-size: 0.8rem; color: #374151; margin: 0; line-height: 1.35;">{{ choice.explanation }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not q.has_explanation %}
+    <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem; font-style: italic;">
+      Spiegazione disponibile dopo la prossima simulazione che include questa domanda.
+    </p>
+    {% endif %}
+
+    <!-- Meta -->
+    <div style="margin-top: 0.75rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      {% if q.topic_slug %}
+      <a href="/topic/{{ q.topic_slug }}" style="font-size: 0.75rem; color: #4f46e5;">
+        → Ripassa: {{ q.topic_slug|replace('-', ' ') }}
+      </a>
+      {% endif %}
+      <span style="font-size: 0.75rem; color: #9ca3af;">
+        Ultimo errore: {{ q.last_wrong_at.strftime('%d/%m/%Y') }}
+      </span>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% endif %}
+  {% endif %}
+
+  <div style="margin-bottom: 2rem; margin-top: 0.5rem;">
+    <a href="/exam" class="btn btn-ghost btn-sm" style="min-height: 44px;">
+      ← Torna all'esame
+    </a>
+  </div>
+</div>
+{% endblock %}
