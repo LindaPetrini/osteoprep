@@ -271,7 +271,15 @@ Per ogni sezione del riassunto di un argomento, genera 2-3 domande a scelta mult
 REGOLE:
 - Ogni domanda deve testare un concetto diverso e specifico della sezione
 - 4 opzioni per domanda: una corretta, tre sbagliate plausibili
-- Le opzioni sbagliate devono essere plausibili ma chiaramente errate per chi ha capito il concetto
+
+QUALITA' DEI DISTRATTORI — FONDAMENTALE:
+- Tutte e 4 le opzioni devono avere lunghezza, livello di dettaglio e stile simili
+- La risposta corretta NON deve essere più lunga, più specifica o più tecnica delle altre
+- I distrattori devono essere errori concettuali realistici: concetti correlati ma errati, valori plausibili ma sbagliati, meccanismi confondibili
+- NON usare distrattori assurdi, vaghi o ovviamente inventati
+- Evita pattern prevedibili: NON mettere sempre la risposta corretta come opzione "a"
+- Varia la posizione della risposta corretta tra a, b, c, d nelle diverse domande
+
 - Domande concise: max 2 righe
 - Opzioni concise: max 1 riga ciascuna
 
@@ -413,8 +421,14 @@ Genera domande a scelta multipla (MCQ) IN ITALIANO per l'argomento indicato.
 REGOLE:
 - 4 opzioni per domanda: una corretta, tre sbagliate plausibili
 - Domande concise, specifiche, testabili all'esame
-- Le opzioni sbagliate devono essere plausibili ma chiaramente errate per chi ha capito
 - Usa terminologia tecnica corretta
+
+QUALITA' DEI DISTRATTORI — FONDAMENTALE:
+- Tutte e 4 le opzioni devono avere lunghezza, livello di dettaglio e stile simili
+- La risposta corretta NON deve essere più lunga, più specifica o più tecnica delle altre
+- I distrattori devono essere errori concettuali realistici: concetti correlati ma errati, valori plausibili ma sbagliati, meccanismi confondibili
+- NON usare distrattori assurdi, vaghi o ovviamente inventati
+- Varia la posizione della risposta corretta tra a, b, c, d nelle diverse domande
 
 OUTPUT FORMAT — usa questi tag XML, uno per domanda:
 <q1>

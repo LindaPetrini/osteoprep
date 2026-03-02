@@ -92,8 +92,10 @@ async def topic_content_fragment(
             "id": sq.id,
             "question_it": sq.question_it,
             "choices": json.loads(sq.choices_json),
+            "choices_json": sq.choices_json,
             "correct_index": sq.correct_index,
             "topic_slug": sq.topic_slug,
+            "questions_json": sq.questions_json,
         }
         for sq in sq_result.scalars().all()
     }

@@ -1,4 +1,5 @@
 import json
+import random
 import re
 
 from fastapi.templating import Jinja2Templates
@@ -80,7 +81,19 @@ def split_sections(text: str) -> list[dict]:
     return sections
 
 
+def shuffle_choices(choices: list[str]) -> list[tuple[int, str]]:
+    """Return list of (original_index, choice_text) in shuffled order.
+
+    Radio-button values stay tied to the original index so the router can
+    compare against the stored correct_index without any mapping.
+    """
+    indexed = list(enumerate(choices))
+    random.shuffle(indexed)
+    return indexed
+
+
 templates.env.filters["render_content"] = render_content
 templates.env.filters["uncertainty"] = render_uncertainty_markers
 templates.env.filters["split_sections"] = split_sections
 templates.env.filters["fromjson"] = json.loads
+templates.env.globals["shuffle_choices"] = shuffle_choices

@@ -33,9 +33,10 @@
         <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}?q_index={{ loop.index0 }}"
               hx-target="#sq-{{ sq.id }}-q{{ loop.index0 }}"
               hx-swap="outerHTML">
-          {% for choice in q_data.choices %}
+          {% set shuffled = shuffle_choices(q_data.choices) %}
+          {% for orig_idx, choice in shuffled %}
           <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
-            <input type="radio" name="answer" value="{{ loop.index0 }}"
+            <input type="radio" name="answer" value="{{ orig_idx }}"
                    class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
             <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
           </label>
