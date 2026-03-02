@@ -6,13 +6,13 @@ Open Terminal on Mac and run:
 
 ```bash
 rsync -av --exclude .venv --exclude __pycache__ --exclude '*.pyc' --exclude .env --exclude 'tests/' \
-  linda@100.121.250.101:/home/linda/projects/osteoprep/ ~/osteoprep-offline/
+  linda@100.121.250.101:/home/linda/projects/osteoprep/ ~/Documents/AI/Personal/osteoprep/
 ```
 
 Then do a first run to install dependencies (takes ~1 min, needs internet):
 
 ```bash
-cd ~/osteoprep-offline
+cd ~/Documents/AI/Personal/osteoprep
 ./run_local.sh
 # Ctrl+C once it starts — deps are now installed
 ```
@@ -32,7 +32,7 @@ Accept "Trust This Computer" on iPhone if asked.
 Open Terminal:
 
 ```bash
-cd ~/osteoprep-offline
+cd ~/Documents/AI/Personal/osteoprep
 ./run_local.sh
 ```
 
