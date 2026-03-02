@@ -76,7 +76,19 @@
   </a>
 </div>
 
-{# AI Chat panel — CHAT-01 through CHAT-04 #}
-{% include "fragments/chat_panel.html" %}
+{# "Chiedi a Claude" button — opens sticky bottom drawer #}
+<div style="margin-top: 1rem;">
+  <button
+    onclick="openChatDrawer('topic-chat')"
+    class="btn btn-outline btn-sm w-full"
+    style="min-height: 44px;">
+    Chiedi a Claude
+  </button>
+</div>
+
+{# Sticky bottom chat drawer #}
+{% set drawer_id = "topic-chat" %}
+{% set chat_context = {"topic_slug": topic.slug} %}
+{% include "fragments/sticky_chat_drawer.html" %}
 
 {% endblock %}

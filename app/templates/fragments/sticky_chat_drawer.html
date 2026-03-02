@@ -1,0 +1,252 @@
+<!-- Sticky bottom chat drawer — iOS-style bottom sheet -->
+<!-- Usage:
+  {% set drawer_id = "topic-chat" %}
+  {% set chat_context = {"topic_slug": topic.slug} %}
+  {% include "fragments/sticky_chat_drawer.html" %}
+-->
+
+<style>
+  .chat-drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 48;
+  }
+  .chat-drawer-backdrop.open {
+    display: block;
+  }
+  .chat-drawer-panel {
+    display: none;
+    position: fixed;
+    bottom: 4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(560px, 100%);
+    background: oklch(var(--b1));
+    border-top: 1px solid oklch(var(--b3));
+    border-radius: 1rem 1rem 0 0;
+    z-index: 49;
+    max-height: 340px;
+    display: none;
+    flex-direction: column;
+  }
+  .chat-drawer-panel.open {
+    display: flex;
+  }
+  .chat-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0.5rem 1rem;
+    border-bottom: 1px solid oklch(var(--b3));
+    flex-shrink: 0;
+  }
+  .chat-drawer-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: oklch(var(--bc));
+  }
+  .chat-drawer-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: oklch(var(--bc) / 0.5);
+    border-radius: 50%;
+    padding: 0;
+  }
+  .chat-drawer-close:hover {
+    background: oklch(var(--b2));
+    color: oklch(var(--bc));
+  }
+  .chat-drawer-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 1rem;
+    min-height: 80px;
+  }
+  .chat-drawer-form {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem 0.75rem 1rem;
+    flex-shrink: 0;
+    border-top: 1px solid oklch(var(--b3));
+  }
+  .chat-drawer-input {
+    flex: 1;
+    border: 1px solid oklch(var(--b3));
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    background: oklch(var(--b2));
+    color: oklch(var(--bc));
+    outline: none;
+    min-height: 44px;
+  }
+  .chat-drawer-input:focus {
+    border-color: oklch(var(--p));
+    background: oklch(var(--b1));
+  }
+  .chat-drawer-send {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: none;
+    background: oklch(var(--p));
+    color: oklch(var(--pc));
+    border-radius: 0.5rem;
+    cursor: pointer;
+    padding: 0;
+  }
+  .chat-drawer-send:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+</style>
+
+<!-- Backdrop -->
+<div
+  id="{{ drawer_id }}-backdrop"
+  class="chat-drawer-backdrop"
+  onclick="closeChatDrawer('{{ drawer_id }}')">
+</div>
+
+<!-- Drawer panel -->
+<div id="{{ drawer_id }}-panel" class="chat-drawer-panel" role="dialog" aria-label="Chiedi a Claude">
+
+  <!-- Header -->
+  <div class="chat-drawer-header">
+    <span class="chat-drawer-title">Chiedi a Claude</span>
+    <button
+      class="chat-drawer-close"
+      onclick="closeChatDrawer('{{ drawer_id }}')"
+      aria-label="Chiudi">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div id="{{ drawer_id }}-messages" class="chat-drawer-messages">
+    <!-- Bubbles appended here by JS -->
+  </div>
+
+  <!-- Input form -->
+  <form
+    class="chat-drawer-form"
+    onsubmit="startDrawerChatStream(event, '{{ drawer_id }}', {{ chat_context | tojson }})">
+    <input
+      type="text"
+      id="{{ drawer_id }}-input"
+      name="question"
+      class="chat-drawer-input"
+      placeholder="Fai una domanda..."
+      autocomplete="off">
+    <button type="submit" class="chat-drawer-send" aria-label="Invia">
+      <!-- Send icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+      </svg>
+    </button>
+  </form>
+</div>
+
+<script>
+(function() {
+  // Guard: only define globals once (multiple drawers on one page share these)
+  if (window._chatDrawerInitialized) return;
+  window._chatDrawerInitialized = true;
+
+  window.openChatDrawer = function(drawerId) {
+    var backdrop = document.getElementById(drawerId + '-backdrop');
+    var panel = document.getElementById(drawerId + '-panel');
+    if (!backdrop || !panel) return;
+    backdrop.classList.add('open');
+    panel.classList.add('open');
+    // Focus input after a tick so the keyboard opens on iOS
+    setTimeout(function() {
+      var input = document.getElementById(drawerId + '-input');
+      if (input) input.focus();
+    }, 80);
+  };
+
+  window.closeChatDrawer = function(drawerId) {
+    var backdrop = document.getElementById(drawerId + '-backdrop');
+    var panel = document.getElementById(drawerId + '-panel');
+    if (backdrop) backdrop.classList.remove('open');
+    if (panel) panel.classList.remove('open');
+  };
+
+  window.startDrawerChatStream = function(e, drawerId, context) {
+    e.preventDefault();
+    var input = document.getElementById(drawerId + '-input');
+    var messages = document.getElementById(drawerId + '-messages');
+    if (!input || !messages) return;
+
+    var q = input.value.trim();
+    if (!q) return;
+
+    // User bubble
+    var userBubble = document.createElement('div');
+    userBubble.className = 'chat chat-end';
+    userBubble.innerHTML = '<div class="chat-bubble" style="font-size: 0.8125rem;">' + escapeHtml(q) + '</div>';
+    messages.appendChild(userBubble);
+
+    // Assistant bubble (filled by SSE stream)
+    var uid = Date.now();
+    var asstBubble = document.createElement('div');
+    asstBubble.className = 'chat chat-start';
+    asstBubble.innerHTML = '<div class="chat-bubble chat-bubble-primary" id="dresp-' + uid + '" style="font-size: 0.8125rem; white-space: pre-wrap;"></div>';
+    messages.appendChild(asstBubble);
+    messages.scrollTop = messages.scrollHeight;
+
+    var target = document.getElementById('dresp-' + uid);
+    input.value = '';
+
+    // Build SSE URL from context dict
+    var params = new URLSearchParams();
+    params.set('q', q);
+    if (context && context.topic_slug) {
+      params.set('topic_slug', context.topic_slug);
+    }
+    if (context && context.quiz_context) {
+      params.set('quiz_context', JSON.stringify(context.quiz_context));
+    }
+    if (context && context.exam_context) {
+      params.set('exam_context', JSON.stringify(context.exam_context));
+    }
+
+    var url = '/chat/stream?' + params.toString();
+    var es = new EventSource(url);
+
+    es.onmessage = function(evt) {
+      if (evt.data === '[DONE]') {
+        es.close();
+        return;
+      }
+      if (evt.data.startsWith('[ERROR')) {
+        target.textContent += '\n[Errore: ' + evt.data + ']';
+        es.close();
+        return;
+      }
+      target.textContent += evt.data.replace(/\\n/g, '\n');
+      messages.scrollTop = messages.scrollHeight;
+    };
+
+    es.onerror = function() { es.close(); };
+  };
+
+  window.escapeHtml = function(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+})();
+</script>
