@@ -1,3 +1,4 @@
+import json
 import re
 
 from fastapi.templating import Jinja2Templates
@@ -82,3 +83,4 @@ def split_sections(text: str) -> list[dict]:
 templates.env.filters["render_content"] = render_content
 templates.env.filters["uncertainty"] = render_uncertainty_markers
 templates.env.filters["split_sections"] = split_sections
+templates.env.filters["fromjson"] = json.loads

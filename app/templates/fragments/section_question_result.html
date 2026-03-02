@@ -1,17 +1,17 @@
-<div id="sq-{{ sq.id }}" class="card border" style="margin-top: 1rem; padding: 1rem;
+<div id="sq-{{ sq.id }}-q{{ q_index }}" class="card border" style="margin-top: 0.75rem; padding: 1rem;
   background-color: {% if is_correct %}#f0fdf4{% else %}#fef2f2{% endif %};
   border-color: {% if is_correct %}#86efac{% else %}#fca5a5{% endif %};">
   <p style="font-size: 0.8125rem; font-weight: 700; margin-bottom: 0.5rem;
      color: {% if is_correct %}#15803d{% else %}#dc2626{% endif %};">
     {% if is_correct %}Corretto!{% else %}Sbagliato{% endif %}
   </p>
-  <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem; color: #111827;">{{ sq.question_it }}</p>
+  <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem; color: #111827;">{{ question_it }}</p>
   {% for choice in choices %}
   <div style="display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 0.375rem; margin-bottom: 0.25rem;
-     background-color: {% if loop.index0 == sq.correct_index %}#dcfce7{% elif loop.index0 == chosen and not is_correct %}#fee2e2{% else %}transparent{% endif %};
-     border: 1px solid {% if loop.index0 == sq.correct_index %}#86efac{% elif loop.index0 == chosen and not is_correct %}#fca5a5{% else %}transparent{% endif %};">
+     background-color: {% if loop.index0 == correct_index %}#dcfce7{% elif loop.index0 == chosen and not is_correct %}#fee2e2{% else %}transparent{% endif %};
+     border: 1px solid {% if loop.index0 == correct_index %}#86efac{% elif loop.index0 == chosen and not is_correct %}#fca5a5{% else %}transparent{% endif %};">
     <span style="font-size: 0.875rem; font-weight: {% if loop.index0 == chosen %}600{% else %}400{% endif %}; color: #374151; line-height: 1.4;">
-      {% if loop.index0 == sq.correct_index %}&#10003; {% elif loop.index0 == chosen %}&#10007; {% endif %}{{ choice }}
+      {% if loop.index0 == correct_index %}&#10003; {% elif loop.index0 == chosen %}&#10007; {% endif %}{{ choice }}
     </span>
   </div>
   {% endfor %}

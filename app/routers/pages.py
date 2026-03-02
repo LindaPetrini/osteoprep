@@ -50,13 +50,16 @@ async def _generate_section_questions(slug: str) -> None:
             if topic is None or topic.content_it is None:
                 return
             sq_data = await generate_section_questions(slug, topic.title_it, topic.content_it)
-            for section_slug, data in sq_data.items():
+            for section_slug, q_data in sq_data.items():
+                # q_data is a list of {question_it, choices, correct_index}
+                first_q = q_data[0] if isinstance(q_data, list) else q_data
                 sq = SectionQuestion(
                     topic_slug=slug,
                     section_slug=section_slug,
-                    question_it=data["question_it"],
-                    choices_json=json.dumps(data["choices"], ensure_ascii=False),
-                    correct_index=data["correct_index"],
+                    question_it=first_q["question_it"],
+                    choices_json=json.dumps(first_q["choices"], ensure_ascii=False),
+                    correct_index=first_q["correct_index"],
+                    questions_json=json.dumps(q_data, ensure_ascii=False) if isinstance(q_data, list) else None,
                 )
                 db.add(sq)
             try:
@@ -154,8 +157,10 @@ async def topic_page(
             "id": sq.id,
             "question_it": sq.question_it,
             "choices": json.loads(sq.choices_json),
+            "choices_json": sq.choices_json,
             "correct_index": sq.correct_index,
             "topic_slug": sq.topic_slug,
+            "questions_json": sq.questions_json,
         }
         for sq in sq_result.scalars().all()
     }

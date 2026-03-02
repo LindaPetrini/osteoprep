@@ -266,37 +266,84 @@ async def generate_exam_explanation(
 
 SECTION_QUESTION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, osteopatia).
 
-Per ogni sezione del riassunto di un argomento, genera UNA domanda a scelta multipla (MCQ) IN ITALIANO che testa la comprensione di quella sezione.
+Per ogni sezione del riassunto di un argomento, genera 2-3 domande a scelta multipla (MCQ) IN ITALIANO che testano la comprensione di quella sezione.
 
 REGOLE:
-- Ogni domanda deve testare un concetto specifico e verificabile dalla sezione
-- 4 opzioni: una corretta, tre sbagliate plausibili
+- Ogni domanda deve testare un concetto diverso e specifico della sezione
+- 4 opzioni per domanda: una corretta, tre sbagliate plausibili
 - Le opzioni sbagliate devono essere plausibili ma chiaramente errate per chi ha capito il concetto
 - Domande concise: max 2 righe
 - Opzioni concise: max 1 riga ciascuna
 
-OUTPUT FORMAT — usa questi tag XML esatti, uno per sezione:
+OUTPUT FORMAT — usa questi tag XML esatti, uno per sezione, con q1/q2/q3 dentro:
 <definizione>
-<domanda>Testo della domanda</domanda>
+<q1>
+<domanda>Testo domanda 1</domanda>
 <opt_a>Prima opzione</opt_a>
 <opt_b>Seconda opzione</opt_b>
 <opt_c>Terza opzione</opt_c>
 <opt_d>Quarta opzione</opt_d>
 <corretta>a</corretta>
+</q1>
+<q2>
+<domanda>Testo domanda 2</domanda>
+<opt_a>Prima opzione</opt_a>
+<opt_b>Seconda opzione</opt_b>
+<opt_c>Terza opzione</opt_c>
+<opt_d>Quarta opzione</opt_d>
+<corretta>b</corretta>
+</q2>
+<q3>
+<domanda>Testo domanda 3</domanda>
+<opt_a>Prima opzione</opt_a>
+<opt_b>Seconda opzione</opt_b>
+<opt_c>Terza opzione</opt_c>
+<opt_d>Quarta opzione</opt_d>
+<corretta>c</corretta>
+</q3>
 </definizione>
 
 Sezioni da generare: definizione, struttura, meccanismo, dati_chiave, importanza, connessioni, focus_esame
-Genera solo le sezioni presenti nel contenuto. Usa il tag corrispondente al slug della sezione."""
+Genera solo le sezioni presenti nel contenuto. Usa il tag corrispondente al slug della sezione.
+Genera sempre almeno 2 domande (q1, q2) per sezione. Aggiungi q3 se il contenuto lo permette."""
+
+
+def _parse_single_question(block: str) -> dict | None:
+    """Parse a single <qN> block into {question_it, choices, correct_index}. Returns None on failure."""
+    q_m = re.search(r"<domanda>(.*?)</domanda>", block, re.DOTALL)
+    a_m = re.search(r"<opt_a>(.*?)</opt_a>", block, re.DOTALL)
+    b_m = re.search(r"<opt_b>(.*?)</opt_b>", block, re.DOTALL)
+    c_m = re.search(r"<opt_c>(.*?)</opt_c>", block, re.DOTALL)
+    d_m = re.search(r"<opt_d>(.*?)</opt_d>", block, re.DOTALL)
+    cor_m = re.search(r"<corretta>(.*?)</corretta>", block, re.DOTALL)
+
+    if not all([q_m, a_m, b_m, c_m, d_m, cor_m]):
+        return None
+
+    choices = [
+        a_m.group(1).strip(),
+        b_m.group(1).strip(),
+        c_m.group(1).strip(),
+        d_m.group(1).strip(),
+    ]
+    correct_letter = cor_m.group(1).strip().lower()
+    correct_index = {"a": 0, "b": 1, "c": 2, "d": 3}.get(correct_letter, 0)
+
+    return {
+        "question_it": q_m.group(1).strip(),
+        "choices": choices,
+        "correct_index": correct_index,
+    }
 
 
 async def generate_section_questions(
     topic_slug: str,
     title_it: str,
     content_it: str,
-) -> dict[str, dict]:
+) -> dict[str, list[dict]]:
     """
-    Generate one MCQ per ## section for a topic.
-    Returns dict: {section_slug: {question_it, choices, correct_index}}
+    Generate 2-3 MCQs per ## section for a topic.
+    Returns dict: {section_slug: [{question_it, choices, correct_index}, ...]}
 
     Fires once per topic — caller must check no section questions exist yet.
     """
@@ -318,12 +365,12 @@ async def generate_section_questions(
     user_msg = (
         f"Argomento: {title_it}\n\n"
         f"Contenuto:\n{content_it[:3000]}\n\n"
-        f"Genera UNA domanda MCQ per ciascuna di queste sezioni: {', '.join(section_slugs)}"
+        f"Genera 2-3 domande MCQ per ciascuna di queste sezioni: {', '.join(section_slugs)}"
     )
 
     response = await client.messages.create(
         model="claude-haiku-4-5-20251001",
-        max_tokens=2048,
+        max_tokens=4096,
         system=SECTION_QUESTION_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_msg}],
     )
@@ -331,38 +378,29 @@ async def generate_section_questions(
 
     results = {}
     for slug in section_slugs:
-        # Match tag by slug name (e.g. <definizione>...</definizione>)
+        # Match section tag (e.g. <definizione>...</definizione>)
         pattern = rf"<{re.escape(slug)}>(.*?)</{re.escape(slug)}>"
         m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
         if not m:
             continue
-        block = m.group(1)
+        section_block = m.group(1)
 
-        q_m = re.search(r"<domanda>(.*?)</domanda>", block, re.DOTALL)
-        a_m = re.search(r"<opt_a>(.*?)</opt_a>", block, re.DOTALL)
-        b_m = re.search(r"<opt_b>(.*?)</opt_b>", block, re.DOTALL)
-        c_m = re.search(r"<opt_c>(.*?)</opt_c>", block, re.DOTALL)
-        d_m = re.search(r"<opt_d>(.*?)</opt_d>", block, re.DOTALL)
-        cor_m = re.search(r"<corretta>(.*?)</corretta>", block, re.DOTALL)
+        # Parse q1, q2, q3
+        questions = []
+        for qn in ("q1", "q2", "q3"):
+            qn_pattern = rf"<{qn}>(.*?)</{qn}>"
+            qn_m = re.search(qn_pattern, section_block, re.DOTALL | re.IGNORECASE)
+            if not qn_m:
+                continue
+            parsed = _parse_single_question(qn_m.group(1))
+            if parsed:
+                questions.append(parsed)
 
-        if not all([q_m, a_m, b_m, c_m, d_m, cor_m]):
+        if not questions:
             logger.warning(f"Section question parse failed for {topic_slug}/{slug}")
             continue
 
-        choices = [
-            a_m.group(1).strip(),
-            b_m.group(1).strip(),
-            c_m.group(1).strip(),
-            d_m.group(1).strip(),
-        ]
-        correct_letter = cor_m.group(1).strip().lower()
-        correct_index = {"a": 0, "b": 1, "c": 2, "d": 3}.get(correct_letter, 0)
-
-        results[slug] = {
-            "question_it": q_m.group(1).strip(),
-            "choices": choices,
-            "correct_index": correct_index,
-        }
+        results[slug] = questions
 
     logger.info(f"Section questions generated for {topic_slug}: {list(results.keys())}")
     return results

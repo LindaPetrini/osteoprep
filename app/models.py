@@ -90,12 +90,13 @@ class PracticeTestAnswer(Base):
 
 
 class SectionQuestion(Base):
-    """One inline MCQ per topic section — generate-once-cache, no answer tracking."""
+    """2-3 inline MCQs per topic section — generate-once-cache, no answer tracking."""
     __tablename__ = "section_questions"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     topic_slug: Mapped[str] = mapped_column(String(100), ForeignKey("topics.slug"), nullable=False, index=True)
     section_slug: Mapped[str] = mapped_column(String(100), nullable=False)
-    question_it: Mapped[str] = mapped_column(Text, nullable=False)
-    choices_json: Mapped[str] = mapped_column(Text, nullable=False)   # JSON list of 4 strings
-    correct_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    question_it: Mapped[str] = mapped_column(Text, nullable=False)          # legacy: question 1
+    choices_json: Mapped[str] = mapped_column(Text, nullable=False)          # legacy: choices for question 1
+    correct_index: Mapped[int] = mapped_column(Integer, nullable=False)       # legacy: correct for question 1
+    questions_json: Mapped[str | None] = mapped_column(Text, nullable=True)   # NEW: JSON array of {question_it, choices, correct_index}
     __table_args__ = (UniqueConstraint("topic_slug", "section_slug", name="uq_section_question"),)
