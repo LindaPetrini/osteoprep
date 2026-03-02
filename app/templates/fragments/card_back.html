@@ -27,16 +27,9 @@
     {% endfor %}
   </div>
 
-  <!-- Chat panel: collapsed by default, per-card context passed as quiz_context -->
+  <!-- Chat panel: open by default, per-card context passed as quiz_context -->
   <div style="margin-top: 1rem;">
-    <button
-      onclick="document.getElementById('card-chat-panel').style.display = document.getElementById('card-chat-panel').style.display === 'none' ? 'block' : 'none';"
-      class="btn btn-outline btn-sm w-full"
-      style="min-height: 44px;">
-      Chiedi a Claude
-    </button>
-
-    <div id="card-chat-panel" style="display: none; margin-top: 0.75rem;">
+    <div id="card-chat-panel" style="margin-top: 0.75rem;">
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body" style="padding: 0.75rem;">
           <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
