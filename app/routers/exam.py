@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from datetime import datetime, timezone
@@ -8,7 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.database import get_db, AsyncSessionLocal
 from app.models import ExamQuestion, PracticeTestAnswer, PracticeTestAttempt
 from app.services import fsrs_service
 from app.services.claude import generate_exam_explanation
@@ -16,6 +17,22 @@ from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+async def _prefetch_exam_explanations(question_ids: list[int]) -> None:
+    """Background task: generate explanations for exam questions that don't have them yet."""
+    async with AsyncSessionLocal() as bg_db:
+        for qid in question_ids:
+            q = await bg_db.get(ExamQuestion, qid)
+            if q and q.explanation_json is None:
+                try:
+                    choices = json.loads(q.choices_json)
+                    exp = await generate_exam_explanation(q.question_it, choices, q.correct_index)
+                    q.explanation_json = json.dumps(exp, ensure_ascii=False)
+                    q.generated_at = datetime.now(timezone.utc)
+                    await bg_db.commit()
+                except Exception as e:
+                    logger.error(f"Prefetch exam explanation failed for q{qid}: {e}")
 
 EXAM_DURATION_SECONDS = 90 * 60   # 90 minutes
 EXAM_QUESTION_COUNT = 20           # Questions per practice session
@@ -83,6 +100,10 @@ async def exam_practice(request: Request, db: AsyncSession = Depends(get_db)):
             "question_it": q.question_it,
             "choices": choices,
         })
+
+    # Fire background task to pre-generate explanations for selected questions
+    question_ids = [q.id for q in questions]
+    asyncio.ensure_future(_prefetch_exam_explanations(question_ids))
 
     # Server-side start time — used by JS timer for accurate countdown
     start_time_epoch = int(datetime.now(timezone.utc).timestamp())
@@ -311,6 +332,14 @@ async def exam_results(
 
     wrong_count = sum(1 for r in results_data if not r["is_correct"] and not r["skipped"])
 
+    exam_context = json.dumps({
+        "score": attempt.score or 0,
+        "max": len(answers),
+        "wrong_count": wrong_count,
+        "time_expired": attempt.time_expired,
+        "wrong": [r["question_it"][:60] for r in results_data if not r["is_correct"] and not r["skipped"]],
+    }, ensure_ascii=False)
+
     due_count = await fsrs_service.get_due_count(db)
     return templates.TemplateResponse(
         request=request,
@@ -324,6 +353,7 @@ async def exam_results(
             "wrong_count": wrong_count,
             "active_tab": "exam",
             "due_count": due_count,
+            "exam_context": exam_context,
         },
     )
 

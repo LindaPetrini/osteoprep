@@ -1,14 +1,15 @@
-import json
+import asyncio
+import json as _json
 import logging
 from datetime import datetime, timezone
 from random import sample
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.database import get_db, AsyncSessionLocal
 from app.models import QuizAttempt, QuizQuestion, Topic
 
 VALID_SUBJECTS = {"biology", "chemistry", "physics", "logic"}
@@ -19,11 +20,27 @@ SUBJECT_NAMES = {
     "logic": "Logica",
 }
 from app.services import fsrs_service
-from app.services.claude import generate_quiz_explanation
+from app.services.claude import generate_quiz_explanation, generate_new_quiz_questions
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+async def _prefetch_explanations(question_ids: list[int]) -> None:
+    """Background task: generate explanations for questions that don't have them yet."""
+    async with AsyncSessionLocal() as bg_db:
+        for qid in question_ids:
+            q = await bg_db.get(QuizQuestion, qid)
+            if q and q.explanation_json is None:
+                try:
+                    choices = __json.loads(q.choices_json)
+                    exp = await generate_quiz_explanation(q.question_it, choices, q.correct_index)
+                    q.explanation_json = __json.dumps(exp, ensure_ascii=False)
+                    q.generated_at = datetime.now(timezone.utc)
+                    await bg_db.commit()
+                except Exception as e:
+                    logger.error(f"Prefetch explanation failed for q{qid}: {e}")
 
 
 def _parse_questions(questions: list) -> list[dict]:
@@ -32,7 +49,7 @@ def _parse_questions(questions: list) -> list[dict]:
         {
             "id": q.id,
             "question_it": q.question_it,
-            "choices": json.loads(q.choices_json),
+            "choices": _json.loads(q.choices_json),
             "correct_index": q.correct_index,
         }
         for q in questions
@@ -51,7 +68,7 @@ async def _score_quiz(submitted: dict, questions: dict) -> tuple[int, list[dict]
         is_correct = chosen == q.correct_index
         if is_correct:
             score += 1
-        choices = json.loads(q.choices_json)
+        choices = _json.loads(q.choices_json)
         results_data.append({
             "q": q,
             "chosen": chosen,
@@ -98,6 +115,10 @@ async def quiz_page(request: Request, slug: str, count: int = 5, db: AsyncSessio
     questions = sample(list(all_questions), min(count, len(all_questions)))
     questions_data = _parse_questions(questions)
 
+    # Fire background task to pre-generate explanations for questions that lack them
+    question_ids = [q.id for q in questions]
+    asyncio.ensure_future(_prefetch_explanations(question_ids))
+
     return templates.TemplateResponse(
         request=request,
         name="quiz.html",
@@ -133,7 +154,7 @@ async def _build_results_data(
         if is_correct:
             score += 1
 
-        choices = json.loads(q.choices_json)
+        choices = _json.loads(q.choices_json)
 
         # Generate-once-cache: only call Claude if explanation_json is NULL
         if q.explanation_json is None:
@@ -141,7 +162,7 @@ async def _build_results_data(
                 explanation = await generate_quiz_explanation(
                     q.question_it, choices, q.correct_index
                 )
-                q.explanation_json = json.dumps(explanation, ensure_ascii=False)
+                q.explanation_json = _json.dumps(explanation, ensure_ascii=False)
                 q.generated_at = datetime.now(timezone.utc)
                 await db.flush()
             except Exception as e:
@@ -153,7 +174,7 @@ async def _build_results_data(
                     "wrong_2": "Spiegazione non disponibile.",
                 }
         else:
-            explanation = json.loads(q.explanation_json)
+            explanation = _json.loads(q.explanation_json)
 
         wrong_idx = 0
         per_choice_explanations = []
@@ -239,6 +260,14 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
     history = history_result.scalars().all()
 
     due_count = await fsrs_service.get_due_count(db)
+
+    quiz_context = _json.dumps({
+        "score": score,
+        "max": len(question_ids),
+        "topic": topic.title_it,
+        "wrong": [r["question_it"][:60] for r in results_data if not r["is_correct"]],
+    }, ensure_ascii=False)
+
     return templates.TemplateResponse(
         request=request,
         name="quiz_results.html",
@@ -253,8 +282,50 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
             "due_count": due_count,
             "back_url": f"/topic/{slug}",
             "retry_url": f"/topic/{slug}/quiz",
+            "quiz_context": quiz_context,
         },
     )
+
+
+@router.post("/topic/{slug}/quiz/generate", response_class=HTMLResponse)
+async def quiz_generate(request: Request, slug: str, db: AsyncSession = Depends(get_db)):
+    """Generate 5 new MCQ questions for a topic using Claude and redirect to quiz."""
+    topic = await db.scalar(select(Topic).where(Topic.slug == slug))
+    if topic is None:
+        raise HTTPException(status_code=404, detail="Topic not found")
+
+    # Get existing questions to avoid duplicates
+    existing_result = await db.execute(
+        select(QuizQuestion.question_it).where(QuizQuestion.topic_slug == slug)
+    )
+    existing_questions = [row[0] for row in existing_result.all()]
+
+    try:
+        new_questions = await generate_new_quiz_questions(
+            topic_slug=slug,
+            title_it=topic.title_it,
+            count=5,
+            existing_questions=existing_questions,
+        )
+
+        now = datetime.now(timezone.utc)
+        for q_data in new_questions:
+            q = QuizQuestion(
+                topic_slug=slug,
+                question_it=q_data["question_it"],
+                choices_json=_json.dumps(q_data["choices"], ensure_ascii=False),
+                correct_index=q_data["correct_index"],
+                generated_at=now,
+            )
+            db.add(q)
+
+        await db.commit()
+        logger.info(f"Generated {len(new_questions)} new questions for topic {slug}")
+    except Exception as e:
+        logger.error(f"Failed to generate new questions for {slug}: {e}")
+        # Redirect to quiz anyway — user will see existing questions
+
+    return RedirectResponse(f"/topic/{slug}/quiz", status_code=303)
 
 
 @router.get("/subject/{subject}/quiz", response_class=HTMLResponse)
@@ -372,6 +443,14 @@ async def subject_quiz_submit(
     history = history_result.scalars().all()
 
     due_count = await fsrs_service.get_due_count(db)
+
+    quiz_context = _json.dumps({
+        "score": score,
+        "max": len(question_ids),
+        "subject": subject_name,
+        "wrong": [r["question_it"][:60] for r in results_data if not r["is_correct"]],
+    }, ensure_ascii=False)
+
     return templates.TemplateResponse(
         request=request,
         name="quiz_results.html",
@@ -386,5 +465,6 @@ async def subject_quiz_submit(
             "due_count": due_count,
             "back_url": "/",
             "retry_url": f"/subject/{subject}/quiz",
+            "quiz_context": quiz_context,
         },
     )

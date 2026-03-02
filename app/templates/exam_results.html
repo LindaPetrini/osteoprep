@@ -66,10 +66,71 @@
   </div>
   {% endfor %}
 
+  <!-- Nuovo esame button -->
+  <div style="margin-bottom: 0.75rem;">
+    <a href="/exam/practice" class="btn btn-secondary btn-sm w-full" style="min-height: 44px;">
+      Nuovo esame
+    </a>
+  </div>
+
+  <!-- Chat panel -->
+  <div style="margin-bottom: 2rem;">
+    <button onclick="document.getElementById('exam-chat-panel').style.display = document.getElementById('exam-chat-panel').style.display === 'none' ? 'block' : 'none';"
+            class="btn btn-outline btn-sm w-full" style="min-height: 44px;">
+      Chiedi a Claude sui risultati
+    </button>
+    <div id="exam-chat-panel" style="display: none; margin-top: 0.75rem;">
+      <div class="card bg-base-100 border border-base-300">
+        <div class="card-body" style="padding: 0.75rem;">
+          <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
+          <div id="exam-chat-messages" style="min-height: 60px; max-height: 320px; overflow-y: auto; margin-bottom: 0.5rem;"></div>
+          <form id="exam-chat-form" onsubmit="startExamChatStream(event, '{{ exam_context | default('') | e }}')">
+            <input type="text" id="exam-chat-input" name="question" class="input input-bordered w-full"
+                   placeholder="Chiedimi qualcosa sui risultati..." autocomplete="off"
+                   style="margin-bottom: 0.5rem; min-height: 44px;">
+            <button type="submit" class="btn btn-primary btn-sm w-full" style="min-height: 44px;">Invia</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div style="margin-bottom: 2rem; text-align: center;">
     <a href="/exam" class="btn btn-ghost btn-sm" style="min-height: 44px;">
       ← Torna alla pagina esame
     </a>
   </div>
 </div>
+
+<script>
+function startExamChatStream(e, examCtx) {
+  e.preventDefault();
+  var input = document.getElementById('exam-chat-input');
+  var q = input.value.trim();
+  if (!q) return;
+  var messages = document.getElementById('exam-chat-messages');
+  var userBubble = document.createElement('div');
+  userBubble.className = 'chat chat-end';
+  userBubble.innerHTML = '<div class="chat-bubble" style="font-size: 0.8125rem;">' + escapeHtmlEC(q) + '</div>';
+  messages.appendChild(userBubble);
+  var uid = Date.now();
+  var asstBubble = document.createElement('div');
+  asstBubble.className = 'chat chat-start';
+  asstBubble.innerHTML = '<div class="chat-bubble chat-bubble-primary" id="eresp-' + uid + '" style="font-size: 0.8125rem; white-space: pre-wrap;"></div>';
+  messages.appendChild(asstBubble);
+  messages.scrollTop = messages.scrollHeight;
+  var target = document.getElementById('eresp-' + uid);
+  input.value = '';
+  var url = '/chat/stream?q=' + encodeURIComponent(q) + '&quiz_context=' + encodeURIComponent(examCtx || '');
+  var es = new EventSource(url);
+  es.onmessage = function(evt) {
+    if (evt.data === '[DONE]') { es.close(); return; }
+    if (evt.data.startsWith('[ERROR')) { target.textContent += '\n[Errore: ' + evt.data + ']'; es.close(); return; }
+    target.textContent += evt.data.replace(/\\n/g, '\n');
+    messages.scrollTop = messages.scrollHeight;
+  };
+  es.onerror = function() { es.close(); };
+}
+function escapeHtmlEC(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
 {% endblock %}

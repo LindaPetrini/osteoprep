@@ -406,7 +406,100 @@ async def generate_section_questions(
     return results
 
 
-async def build_chat_system_prompt(topic_slug: str, db) -> str:
+NEW_QUIZ_QUESTIONS_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, osteopatia).
+
+Genera domande a scelta multipla (MCQ) IN ITALIANO per l'argomento indicato.
+
+REGOLE:
+- 4 opzioni per domanda: una corretta, tre sbagliate plausibili
+- Domande concise, specifiche, testabili all'esame
+- Le opzioni sbagliate devono essere plausibili ma chiaramente errate per chi ha capito
+- Usa terminologia tecnica corretta
+
+OUTPUT FORMAT — usa questi tag XML, uno per domanda:
+<q1>
+<domanda>Testo della domanda</domanda>
+<opt_a>Prima opzione</opt_a>
+<opt_b>Seconda opzione</opt_b>
+<opt_c>Terza opzione</opt_c>
+<opt_d>Quarta opzione</opt_d>
+<corretta>a</corretta>
+</q1>
+<q2>...</q2>
+...e così via."""
+
+
+async def generate_new_quiz_questions(
+    topic_slug: str,
+    title_it: str,
+    count: int = 5,
+    existing_questions: list[str] | None = None,
+) -> list[dict]:
+    """
+    Generate `count` new MCQ questions for a topic.
+    Returns list of {question_it, choices, correct_index} dicts.
+    existing_questions: list of existing question texts to avoid duplicates.
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+
+    client = AsyncAnthropic(api_key=api_key)
+
+    avoid_msg = ""
+    if existing_questions:
+        samples = existing_questions[:10]
+        avoid_msg = f"\n\nEvita di ripetere queste domande già presenti:\n" + "\n".join(f"- {q}" for q in samples)
+
+    user_msg = (
+        f"Argomento: {title_it}\n\n"
+        f"Genera {count} nuove domande MCQ su questo argomento.{avoid_msg}"
+    )
+
+    response = await client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        system=NEW_QUIZ_QUESTIONS_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": user_msg}],
+    )
+    raw = response.content[0].text
+
+    results = []
+    for i in range(1, count + 3):  # try a few extra tags
+        pattern = rf"<q{i}>(.*?)</q{i}>"
+        m = re.search(pattern, raw, re.DOTALL | re.IGNORECASE)
+        if not m:
+            continue
+        block = m.group(1)
+
+        q_m = re.search(r"<domanda>(.*?)</domanda>", block, re.DOTALL)
+        a_m = re.search(r"<opt_a>(.*?)</opt_a>", block, re.DOTALL)
+        b_m = re.search(r"<opt_b>(.*?)</opt_b>", block, re.DOTALL)
+        c_m = re.search(r"<opt_c>(.*?)</opt_c>", block, re.DOTALL)
+        d_m = re.search(r"<opt_d>(.*?)</opt_d>", block, re.DOTALL)
+        cor_m = re.search(r"<corretta>(.*?)</corretta>", block, re.DOTALL)
+
+        if not all([q_m, a_m, b_m, c_m, d_m, cor_m]):
+            continue
+
+        choices = [a_m.group(1).strip(), b_m.group(1).strip(), c_m.group(1).strip(), d_m.group(1).strip()]
+        correct_letter = cor_m.group(1).strip().lower()
+        correct_index = {"a": 0, "b": 1, "c": 2, "d": 3}.get(correct_letter, 0)
+
+        results.append({
+            "question_it": q_m.group(1).strip(),
+            "choices": choices,
+            "correct_index": correct_index,
+        })
+
+        if len(results) >= count:
+            break
+
+    logger.info(f"Generated {len(results)} new questions for topic {topic_slug}")
+    return results
+
+
+async def build_chat_system_prompt(topic_slug: str, db, quiz_context: str | None = None) -> str:
     """Build context-aware system prompt for chat (CHAT-03 + CHAT-04)."""
     from sqlalchemy import select
     from app.models import Topic
@@ -425,6 +518,12 @@ async def build_chat_system_prompt(topic_slug: str, db) -> str:
                 f"\nL'utente sta studiando: '{topic.title_it}' ({topic.title_en})."
                 " Rispondi nel contesto di questo argomento."
             )
+
+    # Quiz/exam context (when called from results pages)
+    if quiz_context:
+        parts.append(
+            f"\nL'utente sta revisionando i risultati di un quiz/esame. Contesto:\n{quiz_context}"
+        )
 
     # CHAT-04: progress context (compact — weak subjects + SRS state)
     try:
