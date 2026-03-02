@@ -15,19 +15,21 @@ async def chat_stream(
     request: Request,
     q: str = "",
     topic_slug: str = "",
+    quiz_context: str | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     """
     SSE endpoint for streaming chat responses.
     q: user question (URL-encoded)
     topic_slug: optional topic for context injection (CHAT-03)
+    quiz_context: optional JSON string with quiz/exam results context
     """
     if not q.strip():
         async def empty():
             yield "data: [DONE]\n\n"
         return StreamingResponse(empty(), media_type="text/event-stream")
 
-    system = await build_chat_system_prompt(topic_slug, db)
+    system = await build_chat_system_prompt(topic_slug, db, quiz_context=quiz_context)
     return StreamingResponse(
         stream_chat_generator(q, system),
         media_type="text/event-stream",
