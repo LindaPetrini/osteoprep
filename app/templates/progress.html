@@ -35,14 +35,23 @@
     {% endif %}
   {% endset %}
   {% set quiz_row = quiz_by_subject.get(row.subject) %}
+  {% set cs = completion_summary.get(row.subject, {}) %}
   <div class="card bg-base-100 border border-base-300" style="border-radius: 0.75rem;">
     <div class="card-body" style="padding: 1rem 1.25rem;">
       <h3 class="card-title text-base" style="margin-bottom: 0.5rem;">{{ subject_name | trim }}</h3>
-      <div style="display: flex; gap: 1.5rem;">
+      <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
         <div>
           <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">Argomenti</div>
-          <div class="text-base-content font-semibold">{{ row.generated }}<span class="text-base-content/40 font-normal">/{{ row.total }}</span></div>
+          <div class="text-base-content font-semibold">
+            {{ cs.get('mastered', 0) }}<span class="text-base-content/40 font-normal">/{{ cs.get('total', row.total) }}</span>
+          </div>
         </div>
+        {% if cs.get('in_progress', 0) > 0 %}
+        <div>
+          <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">In corso</div>
+          <div class="text-base-content font-semibold text-warning">{{ cs.get('in_progress', 0) }}</div>
+        </div>
+        {% endif %}
         <div>
           <div class="text-base-content/50" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem;">Accuratezza quiz</div>
           {% if quiz_row and quiz_row.attempts and quiz_row.avg_accuracy is not none %}

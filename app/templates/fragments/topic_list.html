@@ -13,18 +13,27 @@
 </div>
 <ul class="menu menu-sm w-full p-2">
   {% for topic in topics %}
+  {% set c = completions.get(topic.slug, {}) %}
   <li>
     <a href="/topic/{{ topic.slug }}"
        class="min-h-[44px] flex items-center text-sm text-base-content hover:bg-base-200 rounded-lg px-3">
       {{ topic.title_it }}
-      {% set best = best_scores.get(topic.slug, 0) or 0 %}
-      {% if best >= 0.6 %}
-      <span class="badge badge-success badge-xs ml-auto">Completato</span>
-      {% elif topic.content_it %}
-      <span class="badge badge-warning badge-xs ml-auto">In corso</span>
-      {% else %}
-      <span class="badge badge-ghost badge-xs ml-auto">Non iniziato</span>
-      {% endif %}
+      <span class="ml-auto flex items-center gap-2">
+        <!-- 3-signal dots: explainer, quiz, cards -->
+        <span style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('explainer_read') %}#3b82f6{% else %}#d1d5db{% endif %};"></span>
+          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('quiz_passed') %}#22c55e{% else %}#d1d5db{% endif %};"></span>
+          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('cards_learned') %}#a855f7{% else %}#d1d5db{% endif %};"></span>
+        </span>
+        <!-- Level badge -->
+        {% if c.get('level') == 2 %}
+        <span class="badge badge-success badge-xs">Fatto</span>
+        {% elif c.get('level') == 1 %}
+        <span class="badge badge-warning badge-xs">In corso</span>
+        {% else %}
+        <span class="badge badge-ghost badge-xs">—</span>
+        {% endif %}
+      </span>
     </a>
   </li>
   {% endfor %}

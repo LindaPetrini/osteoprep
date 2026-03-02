@@ -196,6 +196,7 @@ async def topic_page(
     # Wikipedia image (3s timeout — optional, never blocks the page)
     wiki = await _get_wikipedia_info(topic.title_en)
 
+    completion = await get_topic_completion(db, slug)
     due_count = await fsrs_service.get_due_count(db)
     return templates.TemplateResponse(
         request=request,
@@ -207,5 +208,6 @@ async def topic_page(
             "active_tab": "topics",
             "due_count": due_count,
             "section_questions": section_questions,
+            "completion": completion,
         },
     )

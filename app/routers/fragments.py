@@ -7,7 +7,8 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import QuizAttempt, SectionQuestion, Topic
+from app.models import SectionQuestion, Topic
+from app.services.completion_service import get_batch_completions
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -28,25 +29,13 @@ async def subject_topics_fragment(
     )
     topics = topics_result.scalars().all()
 
-    # Best quiz score per topic slug (single GROUP BY query — no N+1)
     slugs = [t.slug for t in topics]
-    if slugs:
-        scores_result = await db.execute(
-            select(
-                QuizAttempt.topic_slug,
-                func.max(QuizAttempt.score * 1.0 / QuizAttempt.max_score).label("best_pct"),
-            )
-            .where(QuizAttempt.topic_slug.in_(slugs))
-            .group_by(QuizAttempt.topic_slug)
-        )
-        best_scores = {row.topic_slug: row.best_pct for row in scores_result}
-    else:
-        best_scores = {}
+    completions = await get_batch_completions(db, slugs)
 
     return templates.TemplateResponse(
         request=request,
         name="fragments/topic_list.html",
-        context={"topics": topics, "subject": subject, "best_scores": best_scores},
+        context={"topics": topics, "subject": subject, "completions": completions},
     )
 
 
