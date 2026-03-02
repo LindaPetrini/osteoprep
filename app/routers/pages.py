@@ -10,9 +10,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import AsyncSessionLocal, get_db
-from app.models import SectionQuestion, Topic
+from app.models import QuizAttempt, SectionQuestion, Topic
 from app.services.claude import generate_explainer, generate_section_questions
 from app.services import fsrs_service
+from app.services.completion_service import get_topic_completion
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -107,10 +108,37 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
     )
     subjects = subjects_result.scalars().all()
     due_count = await fsrs_service.get_due_count(db)
+
+    # Last 3 distinct topic slugs from quiz attempts (most recent first), skip nulls
+    recent_slugs_result = await db.execute(
+        select(QuizAttempt.topic_slug)
+        .where(QuizAttempt.topic_slug.isnot(None))
+        .order_by(QuizAttempt.attempted_at.desc())
+    )
+    seen: set[str] = set()
+    recent_slugs: list[str] = []
+    for (slug,) in recent_slugs_result:
+        if slug not in seen:
+            seen.add(slug)
+            recent_slugs.append(slug)
+        if len(recent_slugs) == 3:
+            break
+
+    recent_topics: list[Topic] = []
+    for slug in recent_slugs:
+        topic = await db.scalar(select(Topic).where(Topic.slug == slug))
+        if topic is not None:
+            recent_topics.append(topic)
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"subjects": subjects, "active_tab": "topics", "due_count": due_count},
+        context={
+            "subjects": subjects,
+            "active_tab": "topics",
+            "due_count": due_count,
+            "recent_topics": recent_topics,
+        },
     )
 
 

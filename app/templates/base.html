@@ -29,7 +29,7 @@
       </svg>
       <span style="font-size: 0.625rem; font-weight: 500;">Ripasso</span>
       {% if due_count is defined and due_count and due_count > 0 %}
-      <span style="position: absolute; top: 2px; right: 10px; background: oklch(var(--p)); color: oklch(var(--pc)); font-size: 0.5rem; font-weight: 700; border-radius: 9999px; padding: 1px 4px; line-height: 1.4;">{{ due_count }}</span>
+      <span style="position: absolute; top: 2px; right: 8px; background: oklch(var(--p)); color: oklch(var(--pc)); font-size: 0.5625rem; font-weight: 700; border-radius: 9999px; padding: 2px 5px; line-height: 1.4; min-width: 20px; text-align: center;">{{ due_count }}</span>
       {% endif %}
     </a>
 

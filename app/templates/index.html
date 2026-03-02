@@ -7,11 +7,22 @@
   <p class="text-base-content/60 text-sm mt-1">Preparazione esame professioni sanitarie</p>
 </div>
 
-<div style="margin-bottom: 1rem;">
-  <a href="/progress" class="btn btn-outline btn-sm w-full">
-    Vedi progressi
-  </a>
+<!-- Dual action buttons: Progressi + Esame pratica -->
+<div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+  <a href="/progress" class="btn btn-outline btn-sm flex-1" style="min-height: 44px;">Progressi</a>
+  <a href="/exam" class="btn btn-outline btn-sm flex-1" style="min-height: 44px;">Esame pratica</a>
 </div>
+
+<!-- Due today banner -->
+{% if due_count and due_count > 0 %}
+<div style="display: flex; align-items: center; justify-content: space-between; background-color: oklch(var(--wa)/0.15); border: 1px solid oklch(var(--wa)/0.4); border-radius: 0.75rem; padding: 0.875rem 1rem; margin-bottom: 1rem;">
+  <div>
+    <p style="font-weight: 700; font-size: 0.9375rem; margin: 0; color: oklch(var(--wac, var(--bc)));">{{ due_count }} carte in scadenza oggi</p>
+    <p style="font-size: 0.8125rem; color: oklch(var(--bc)/0.6); margin: 0.2rem 0 0;">Inizia il ripasso SRS</p>
+  </div>
+  <a href="/review" class="btn btn-sm btn-warning" style="min-height: 44px; flex-shrink: 0;">Inizia</a>
+</div>
+{% endif %}
 
 <!-- Topic search -->
 <div style="margin-bottom: 1rem;">
@@ -24,6 +35,26 @@
          autocomplete="off">
   <div id="search-results"></div>
 </div>
+
+<!-- Recent topics -->
+{% if recent_topics %}
+<div style="margin-bottom: 1.25rem;">
+  <p style="font-size: 0.6875rem; font-weight: 600; color: oklch(var(--bc)/0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;">Recenti</p>
+  <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+    {% for topic in recent_topics %}
+    <a href="/topic/{{ topic.slug }}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.625rem 0.75rem; background: oklch(var(--b1)); border: 1px solid oklch(var(--b3)); border-radius: 0.625rem; text-decoration: none;">
+      <div>
+        <p style="font-size: 0.875rem; font-weight: 600; color: oklch(var(--bc)); margin: 0;">{{ topic.title_it }}</p>
+        <p style="font-size: 0.75rem; color: oklch(var(--bc)/0.5); margin: 0.1rem 0 0; text-transform: capitalize;">
+          {% if topic.subject == "biology" %}Biologia{% elif topic.subject == "chemistry" %}Chimica{% elif topic.subject == "physics" %}Fisica{% else %}{{ topic.subject }}{% endif %}
+        </p>
+      </div>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: oklch(var(--bc)/0.3); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div id="subject-accordions" style="display: flex; flex-direction: column; gap: 0.75rem;">
   {% for subject in subjects %}
