@@ -28,10 +28,17 @@
         Ripassare l'argomento e riprovare.
       {% endif %}
     </p>
-    <div style="display: flex; gap: 0.75rem; justify-content: center; margin-top: 1rem;">
+    <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
       <a href="{{ retry_url }}" class="btn btn-primary btn-sm" style="min-height: 44px;">
         Riprova il quiz
       </a>
+      {% if topic %}
+      <form method="post" action="/topic/{{ topic.slug }}/quiz/generate" style="display: inline;">
+        <button type="submit" class="btn btn-accent btn-sm" style="min-height: 44px;">
+          Genera nuove domande
+        </button>
+      </form>
+      {% endif %}
       <a href="{{ back_url }}" class="btn btn-ghost btn-sm" style="min-height: 44px;">
         Indietro
       </a>
@@ -88,25 +95,12 @@
   </div>
   {% endif %}
 
-  <!-- Generate new questions button -->
-  {% if topic %}
-  <form method="post" action="/topic/{{ topic.slug }}/quiz/generate" style="margin-bottom: 0.5rem;">
-    <button type="submit" class="btn btn-secondary btn-sm w-full" style="min-height: 44px;">
-      Genera nuove domande
-    </button>
-  </form>
-  {% endif %}
-
   <!-- Chat panel -->
   <div style="margin-top: 1rem; margin-bottom: 2rem;">
-    <button onclick="document.getElementById('quiz-chat-panel').style.display = document.getElementById('quiz-chat-panel').style.display === 'none' ? 'block' : 'none';"
-            class="btn btn-outline btn-sm w-full" style="min-height: 44px;">
-      Chiedi a Claude sui risultati
-    </button>
-    <div id="quiz-chat-panel" style="display: none; margin-top: 0.75rem;">
+    <h3 style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 0.75rem;">Chiedi a Claude</h3>
+    <div id="quiz-chat-panel" style="display: block;">
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body" style="padding: 0.75rem;">
-          <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
           <div id="quiz-chat-messages" style="min-height: 60px; max-height: 320px; overflow-y: auto; margin-bottom: 0.5rem;"></div>
           <form id="quiz-chat-form" onsubmit="startQuizChatStream(event, '{{ topic.slug if topic else "" }}', '{{ quiz_context | default('') | e }}')">
             <input type="text" id="quiz-chat-input" name="question" class="input input-bordered w-full"

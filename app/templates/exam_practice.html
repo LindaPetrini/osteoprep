@@ -21,10 +21,13 @@
   <div style="margin-top: 0.5rem;">
     <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">
       <span>Risposte</span>
-      <span id="progress-text">0 / {{ question_count }}</span>
+      <span>
+        <span id="progress-text">0 / {{ question_count }}</span>
+        &nbsp;<span id="exam-pct" style="font-weight: 600; color: oklch(var(--bc));">0%</span>
+      </span>
     </div>
-    <div style="height: 4px; background-color: #e5e7eb; border-radius: 9999px; overflow: hidden;">
-      <div id="exam-progress-bar" style="height: 100%; width: 0%; background-color: oklch(var(--p)); border-radius: 9999px; transition: width 0.3s ease;"></div>
+    <div style="height: 6px; background-color: #e5e7eb; border-radius: 9999px; overflow: hidden;">
+      <div id="exam-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #f97316 0%, #eab308 50%, #22c55e 100%); border-radius: 9999px; transition: width 0.3s ease;"></div>
     </div>
   </div>
 </div>
@@ -97,9 +100,7 @@
     const pct = (answered / examTotal) * 100;
     progressText.textContent = answered + ' / ' + examTotal;
     progressBar.style.width = pct + '%';
-    progressBar.style.backgroundColor = answered >= examTotal
-      ? 'oklch(var(--su))'
-      : 'oklch(var(--p))';
+    document.getElementById('exam-pct').textContent = Math.round(pct) + '%';
   }
 
   form.addEventListener('change', updateProgress);

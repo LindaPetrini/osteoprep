@@ -35,8 +35,21 @@
   <!-- Per-question breakdown -->
   <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">Analisi delle risposte</h2>
 
+  <!-- Filter tabs -->
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; overflow-x: auto; padding-bottom: 0.25rem;">
+    <button onclick="filterExamResults('all')" id="exam-filter-all"
+            class="btn btn-sm btn-primary" style="white-space: nowrap; min-height: 36px;">
+      Tutte ({{ results | length }})
+    </button>
+    {% set wrong_count_filter = results | selectattr('is_correct', 'equalto', false) | list | length %}
+    <button onclick="filterExamResults('wrong')" id="exam-filter-wrong"
+            class="btn btn-sm btn-outline" style="white-space: nowrap; min-height: 36px;">
+      Sbagliate ({{ wrong_count_filter }})
+    </button>
+  </div>
+
   {% for r in results %}
-  <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;">
+  <div class="card bg-base-100 shadow-sm border border-base-300" style="margin-bottom: 1.25rem; padding: 1rem;" data-correct="{{ 'true' if r.is_correct else 'false' }}">
     <!-- Question header -->
     <div style="display: flex; gap: 0.625rem; align-items: flex-start; margin-bottom: 0.875rem;">
       <span style="font-size: 1.125rem; flex-shrink: 0;">
@@ -75,14 +88,10 @@
 
   <!-- Chat panel -->
   <div style="margin-bottom: 2rem;">
-    <button onclick="document.getElementById('exam-chat-panel').style.display = document.getElementById('exam-chat-panel').style.display === 'none' ? 'block' : 'none';"
-            class="btn btn-outline btn-sm w-full" style="min-height: 44px;">
-      Chiedi a Claude sui risultati
-    </button>
-    <div id="exam-chat-panel" style="display: none; margin-top: 0.75rem;">
+    <h3 style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 0.75rem;">Chiedi a Claude</h3>
+    <div id="exam-chat-panel" style="display: block;">
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body" style="padding: 0.75rem;">
-          <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
           <div id="exam-chat-messages" style="min-height: 60px; max-height: 320px; overflow-y: auto; margin-bottom: 0.5rem;"></div>
           <form id="exam-chat-form" onsubmit="startExamChatStream(event, '{{ exam_context | default('') | e }}')">
             <input type="text" id="exam-chat-input" name="question" class="input input-bordered w-full"
@@ -101,6 +110,20 @@
     </a>
   </div>
 </div>
+
+<script>
+function filterExamResults(filter) {
+  document.querySelectorAll('[data-correct]').forEach(function(card) {
+    if (filter === 'all') { card.style.display = ''; return; }
+    card.style.display = (filter === 'wrong' && card.dataset.correct === 'false') ? '' : 'none';
+  });
+  ['all', 'wrong'].forEach(function(f) {
+    var btn = document.getElementById('exam-filter-' + f);
+    btn.className = btn.className.replace(' btn-primary', '').replace(' btn-outline', '');
+    btn.className += f === filter ? ' btn-primary' : ' btn-outline';
+  });
+}
+</script>
 
 <script>
 function startExamChatStream(e, examCtx) {
