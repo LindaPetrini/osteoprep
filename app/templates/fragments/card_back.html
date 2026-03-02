@@ -3,13 +3,14 @@
   <div class="card bg-base-100 shadow-sm border border-base-300"
        style="padding: 1.5rem;">
     <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">Risposta</p>
-    <p style="font-size: 1rem;">{{ flashcard.back_it }}</p>
+    <div style="height: 2px; background: oklch(var(--p)/0.35); border-radius: 1px; margin-bottom: 0.75rem;"></div>
+    <p style="font-size: 1rem; line-height: 1.6; font-weight: 500;">{{ flashcard.back_it }}</p>
     {% if flashcard.back_en %}
     <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.75rem; border-top: 1px solid #e5e7eb; padding-top: 0.5rem;">{{ flashcard.back_en }}</p>
     {% endif %}
   </div>
 
-  <!-- Rating buttons — full width row, 44px min height -->
+  <!-- Rating buttons — full width row, 54px min height -->
   <p style="font-size: 0.75rem; color: #6b7280; margin-top: 1rem; margin-bottom: 0.5rem; text-align: center;">Com'e' andata? <span style="color: #9ca3af;">(1-4)</span></p>
   <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
     {% for label, value, color in [("Di nuovo", 1, "#ef4444"), ("Difficile", 2, "#f97316"), ("Bene", 3, "#22c55e"), ("Facile", 4, "#3b82f6")] %}
@@ -20,16 +21,27 @@
       <input type="hidden" name="total" value="{{ total }}">
       <input type="hidden" name="subject" value="{{ subject | default('') }}">
       <input type="hidden" name="mode" value="{{ mode | default('due') }}">
-      <button type="submit" id="rating-btn-{{ value }}" class="btn w-full" style="min-height: 44px; background-color: {{ color }}; color: white; border: none; font-size: 0.75rem;">
+      <button type="submit" id="rating-btn-{{ value }}" class="btn w-full"
+              style="min-height: 54px; background-color: {{ color }}; color: white; border: none; font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;"
+              onclick="if(navigator.vibrate)navigator.vibrate(40); this.style.transform='scale(0.95)'; var b=this; setTimeout(function(){b.style.transform='';},150);">
         {{ label }}
+        <span style="display: block; font-size: 0.625rem; opacity: 0.75; margin-top: 0.15rem;">Tasto {{ value }}</span>
       </button>
     </form>
     {% endfor %}
   </div>
 
-  <!-- Chat panel: open by default, per-card context passed as quiz_context -->
+  <!-- Chat panel: collapsed by default -->
   <div style="margin-top: 1rem;">
-    <div id="card-chat-panel" style="margin-top: 0.75rem;">
+    <button class="btn btn-ghost btn-xs w-full" style="gap: 0.375rem;"
+            onclick="var p=document.getElementById('card-chat-panel'); p.style.display = p.style.display==='none' ? 'block' : 'none';">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+      Chiedi a Claude
+    </button>
+    <div id="card-chat-panel" style="display: none; margin-top: 0.75rem;">
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body" style="padding: 0.75rem;">
           <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>

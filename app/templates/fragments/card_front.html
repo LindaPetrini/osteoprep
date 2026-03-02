@@ -1,7 +1,7 @@
 <div id="card-container">
-  <div class="card bg-base-100 shadow-sm border border-base-300"
-       style="min-height: 160px; display: flex; align-items: center; justify-content: center; padding: 1.5rem; flex-direction: column;">
-    <p style="font-size: 1.125rem; font-weight: 600; text-align: center;">{{ flashcard.front_it }}</p>
+  <div class="card bg-base-100 shadow-sm"
+       style="min-height: 200px; display: flex; align-items: center; justify-content: center; padding: 1.5rem; flex-direction: column; border: 2px solid oklch(var(--p)/0.4);">
+    <p style="font-size: 1.1875rem; font-weight: 700; text-align: center; line-height: 1.5;">{{ flashcard.front_it }}</p>
     {% if flashcard.front_en %}
     <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.5rem; text-align: center;">{{ flashcard.front_en }}</p>
     {% endif %}
@@ -15,6 +15,8 @@
     hx-swap="outerHTML">
     Mostra risposta
   </button>
+  <p class="keyboard-hint" style="font-size: 0.6875rem; color: oklch(var(--bc)/0.35); text-align: center; margin-top: 0.5rem;">Premi <kbd style="background: oklch(var(--b3)); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.6875rem;">Space</kbd> per girare</p>
+  <style>@media (hover: none) { .keyboard-hint { display: none; } }</style>
 </div>
 <script>
 (function() {
