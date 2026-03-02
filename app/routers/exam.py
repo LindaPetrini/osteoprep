@@ -34,7 +34,7 @@ async def _prefetch_exam_explanations(question_ids: list[int]) -> None:
                 except Exception as e:
                     logger.error(f"Prefetch exam explanation failed for q{qid}: {e}")
 
-EXAM_DURATION_SECONDS = 90 * 60   # 90 minutes
+EXAM_DURATION_SECONDS = 40 * 60   # 40 minutes
 EXAM_QUESTION_COUNT = 20           # Questions per practice session
 
 
