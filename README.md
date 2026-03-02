@@ -2,13 +2,16 @@
 
 A study app for Italian healthcare/osteopathy entrance exams (*professioni sanitarie*). Built with FastAPI, HTMX, and DaisyUI — designed for mobile-first use, works offline.
 
-<!-- Screenshots: add your own images to docs/screenshots/ and uncomment
 <p align="center">
   <img src="docs/screenshots/home.png" width="250" alt="Home page">
-  <img src="docs/screenshots/topic.png" width="250" alt="Topic explainer">
+  <img src="docs/screenshots/topic.png" width="250" alt="Topic with section quiz">
   <img src="docs/screenshots/quiz.png" width="250" alt="Quiz mode">
 </p>
--->
+<p align="center">
+  <img src="docs/screenshots/review.png" width="250" alt="Flashcard review">
+  <img src="docs/screenshots/exam.png" width="250" alt="Practice exam">
+  <img src="docs/screenshots/progress.png" width="250" alt="Progress dashboard">
+</p>
 
 ## Features
 
