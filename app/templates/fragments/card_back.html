@@ -26,9 +26,43 @@
     </form>
     {% endfor %}
   </div>
+
+  <!-- Chat panel: collapsed by default, per-card context passed as quiz_context -->
+  <div style="margin-top: 1rem;">
+    <button
+      onclick="document.getElementById('card-chat-panel').style.display = document.getElementById('card-chat-panel').style.display === 'none' ? 'block' : 'none';"
+      class="btn btn-outline btn-sm w-full"
+      style="min-height: 44px;">
+      Chiedi a Claude
+    </button>
+
+    <div id="card-chat-panel" style="display: none; margin-top: 0.75rem;">
+      <div class="card bg-base-100 border border-base-300">
+        <div class="card-body" style="padding: 0.75rem;">
+          <h3 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Chiedi a Claude</h3>
+
+          <!-- Message history -->
+          <div id="card-chat-messages" style="min-height: 60px; max-height: 320px; overflow-y: auto; margin-bottom: 0.5rem;"></div>
+
+          <!-- Input form -->
+          <form id="card-chat-form" onsubmit="startCardChatStream(event)">
+            <input type="text" id="card-chat-input" name="question"
+                   class="input input-bordered w-full"
+                   placeholder="Fai una domanda sulla carta..."
+                   autocomplete="off"
+                   style="margin-bottom: 0.5rem; min-height: 44px;">
+            <button type="submit" class="btn btn-primary btn-sm w-full" style="min-height: 44px;">
+              Invia
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script>
 (function() {
+  // Keyboard shortcuts: 1-4 to rate
   var keyMap = {'1': 1, '2': 2, '3': 3, '4': 4};
   function handleKey(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -43,5 +77,55 @@
     document.removeEventListener('keydown', handleKey);
     document.removeEventListener('htmx:beforeSwap', cleanup);
   }, {once: true});
+
+  // Card chat context — encoded once at render time
+  var cardQuizContext = JSON.stringify({
+    card_front: {{ flashcard.front_it | tojson }},
+    card_back: {{ flashcard.back_it | tojson }}
+  });
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  window.startCardChatStream = function(e) {
+    e.preventDefault();
+    var input = document.getElementById('card-chat-input');
+    var q = input.value.trim();
+    if (!q) return;
+
+    var messages = document.getElementById('card-chat-messages');
+
+    // User bubble
+    var userBubble = document.createElement('div');
+    userBubble.className = 'chat chat-end';
+    userBubble.innerHTML = '<div class="chat-bubble" style="font-size: 0.8125rem;">' + escapeHtml(q) + '</div>';
+    messages.appendChild(userBubble);
+
+    // Assistant bubble (filled by stream)
+    var uid = Date.now();
+    var asstBubble = document.createElement('div');
+    asstBubble.className = 'chat chat-start';
+    asstBubble.innerHTML = '<div class="chat-bubble chat-bubble-primary" id="card-resp-' + uid + '" style="font-size: 0.8125rem; white-space: pre-wrap;"></div>';
+    messages.appendChild(asstBubble);
+    messages.scrollTop = messages.scrollHeight;
+
+    var target = document.getElementById('card-resp-' + uid);
+    input.value = '';
+
+    var url = '/chat/stream?q=' + encodeURIComponent(q) + '&quiz_context=' + encodeURIComponent(cardQuizContext);
+    var es = new EventSource(url);
+    es.onmessage = function(evt) {
+      if (evt.data === '[DONE]') { es.close(); return; }
+      if (evt.data.startsWith('[ERROR')) {
+        target.textContent += '\n[Errore: ' + evt.data + ']';
+        es.close();
+        return;
+      }
+      target.textContent += evt.data.replace(/\\n/g, '\n');
+      messages.scrollTop = messages.scrollHeight;
+    };
+    es.onerror = function() { es.close(); };
+  };
 })();
 </script>
