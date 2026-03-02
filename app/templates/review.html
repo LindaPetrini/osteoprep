@@ -4,7 +4,7 @@
   <h1 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem;">Ripasso carte</h1>
 
   {# Subject filter pills #}
-  {% set subjects = [("", "Tutti"), ("biology", "Biologia"), ("chemistry", "Chimica"), ("physics", "Fisica"), ("logic", "Logica")] %}
+  {% set subjects = [("", "Tutti"), ("biology", "Biologia"), ("chemistry", "Chimica"), ("physics", "Fisica")] %}
   <div style="display: flex; flex-wrap: wrap; gap: 0.375rem; margin-bottom: 0.75rem;">
     {% for s_val, s_label in subjects %}
     <a href="/review{% if s_val %}?subject={{ s_val }}{% if mode == 'all' %}&mode=all{% endif %}{% elif mode == 'all' %}?mode=all{% endif %}"

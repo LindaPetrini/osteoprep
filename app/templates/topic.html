@@ -69,16 +69,11 @@
   {% include "fragments/explainer_content.html" %}
 </div>
 
-{# Quiz entry point — two-button row #}
+{# Quiz entry point #}
 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
-  <div style="display: flex; gap: 0.5rem;">
-    <a href="/topic/{{ topic.slug }}/quiz?count=2" class="btn btn-outline flex-1" style="min-height: 44px;">
-      Quick Check (2)
-    </a>
-    <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary flex-1" style="min-height: 44px;">
-      Quiz (5)
-    </a>
-  </div>
+  <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary w-full" style="min-height: 44px;">
+    Quiz (5 domande)
+  </a>
 </div>
 
 {# AI Chat panel — CHAT-01 through CHAT-04 #}
