@@ -97,6 +97,10 @@
   <!-- Chat panel -->
   <div style="margin-bottom: 2rem;">
     <h3 style="font-size: 0.9375rem; font-weight: 700; margin-bottom: 0.75rem;">Chiedi a Claude</h3>
+    <div id="exam-chat-keyhint" style="display: none; margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; background: oklch(var(--wa)/0.1); border-radius: 0.5rem; font-size: 0.75rem; color: oklch(var(--bc)/0.7); line-height: 1.4;">
+      Per usare la chat serve una chiave API Anthropic. <a href="/settings" style="color: oklch(var(--p)); text-decoration: underline;">Configurala nelle impostazioni</a>
+    </div>
+    <script>if (!localStorage.getItem('anthropic_api_key')) document.getElementById('exam-chat-keyhint').style.display = 'block';</script>
     <div id="exam-chat-panel" style="display: block;">
       <div class="card bg-base-100 border border-base-300">
         <div class="card-body" style="padding: 0.75rem;">

@@ -129,6 +129,11 @@
     </button>
   </div>
 
+  <!-- API key hint (hidden if key is set) -->
+  <div id="{{ drawer_id }}-keyhint" class="chat-drawer-keyhint" style="display: none; padding: 0.625rem 1rem; background: oklch(var(--wa)/0.1); font-size: 0.75rem; color: oklch(var(--bc)/0.7); line-height: 1.4;">
+    Per usare la chat serve una chiave API Anthropic. <a href="/settings" style="color: oklch(var(--p)); text-decoration: underline;">Configurala nelle impostazioni</a>
+  </div>
+
   <!-- Messages -->
   <div id="{{ drawer_id }}-messages" class="chat-drawer-messages">
     <!-- Bubbles appended here by JS -->
@@ -166,6 +171,9 @@
     if (!backdrop || !panel) return;
     backdrop.classList.add('open');
     panel.classList.add('open');
+    // Show/hide API key hint
+    var hint = document.getElementById(drawerId + '-keyhint');
+    if (hint) hint.style.display = localStorage.getItem('anthropic_api_key') ? 'none' : 'block';
     // Focus input after a tick so the keyboard opens on iOS
     setTimeout(function() {
       var input = document.getElementById(drawerId + '-input');
