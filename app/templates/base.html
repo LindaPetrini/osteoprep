@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="it" data-theme="light">
+<html lang="it" data-theme="osteo-light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,7 +9,10 @@
   <script>
     // Apply saved theme immediately to avoid flash of wrong theme
     (function() {
-      var theme = localStorage.getItem('theme') || 'light';
+      var theme = localStorage.getItem('theme') || 'osteo-light';
+      // Migrate old theme names
+      if (theme === 'light') theme = 'osteo-light';
+      if (theme === 'dark') theme = 'osteo-dark';
       document.documentElement.setAttribute('data-theme', theme);
     })();
   </script>
@@ -17,6 +20,72 @@
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script src="/static/app.js" defer></script>
   <style>
+    /* Custom pastel themes */
+    [data-theme="osteo-light"] {
+      --p: 74% 0.11 310;     /* soft lavender */
+      --pf: 64% 0.13 310;
+      --pc: 98% 0.01 310;
+      --s: 78% 0.10 350;     /* soft rose */
+      --sf: 68% 0.12 350;
+      --sc: 98% 0.01 350;
+      --a: 82% 0.09 170;     /* soft mint */
+      --af: 72% 0.11 170;
+      --ac: 25% 0.04 170;
+      --n: 55% 0.03 260;     /* neutral slate */
+      --nf: 45% 0.03 260;
+      --nc: 98% 0.005 260;
+      --b1: 98.5% 0.005 270; /* near-white with hint of lavender */
+      --b2: 95% 0.01 270;
+      --b3: 91% 0.015 270;
+      --bc: 30% 0.03 260;    /* dark text */
+      --in: 72% 0.11 230;    /* info blue */
+      --inc: 98% 0.01 230;
+      --su: 78% 0.12 155;    /* success green */
+      --suc: 25% 0.04 155;
+      --wa: 85% 0.12 80;     /* warning amber */
+      --wac: 30% 0.06 80;
+      --er: 70% 0.15 25;     /* error coral */
+      --erc: 98% 0.01 25;
+      --rounded-box: 1rem;
+      --rounded-btn: 0.75rem;
+      --rounded-badge: 1rem;
+      --animation-btn: 0.2s;
+      --animation-input: 0.2s;
+      --btn-focus-scale: 0.97;
+    }
+    [data-theme="osteo-dark"] {
+      --p: 72% 0.11 310;
+      --pf: 62% 0.13 310;
+      --pc: 98% 0.01 310;
+      --s: 75% 0.10 350;
+      --sf: 65% 0.12 350;
+      --sc: 98% 0.01 350;
+      --a: 78% 0.09 170;
+      --af: 68% 0.11 170;
+      --ac: 20% 0.04 170;
+      --n: 35% 0.02 260;
+      --nf: 25% 0.02 260;
+      --nc: 90% 0.01 260;
+      --b1: 22% 0.015 270;
+      --b2: 18% 0.015 270;
+      --b3: 26% 0.02 270;
+      --bc: 90% 0.01 270;
+      --in: 72% 0.11 230;
+      --inc: 15% 0.03 230;
+      --su: 75% 0.12 155;
+      --suc: 15% 0.04 155;
+      --wa: 82% 0.12 80;
+      --wac: 20% 0.06 80;
+      --er: 68% 0.15 25;
+      --erc: 15% 0.03 25;
+      --rounded-box: 1rem;
+      --rounded-btn: 0.75rem;
+      --rounded-badge: 1rem;
+      --animation-btn: 0.2s;
+      --animation-input: 0.2s;
+      --btn-focus-scale: 0.97;
+    }
+
     /* Micro-interaction: active-state bounce */
     .btn, .card { transition: transform 0.1s ease; }
     .btn:active, .card:active { transform: scale(0.97); }
@@ -44,6 +113,40 @@
       0% { top: -10px; transform: rotate(0deg) scale(1); }
       100% { top: 100vh; transform: rotate(720deg) scale(0.5); }
     }
+
+    /* Subject card styling */
+    .subject-card {
+      background: oklch(var(--b1));
+      border: 1px solid oklch(var(--b3));
+      border-radius: 1rem;
+      overflow: hidden;
+      transition: box-shadow 0.2s ease;
+    }
+    .subject-card:hover { box-shadow: 0 2px 12px oklch(var(--p)/0.08); }
+
+    /* Topic row */
+    .topic-row {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.625rem 0.75rem;
+      border-radius: 0.625rem;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+    .topic-row:hover { background: oklch(var(--b2)); }
+
+    /* Status badge alignment fix */
+    .status-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.6875rem; font-weight: 600;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      white-space: nowrap;
+      min-width: 4.5rem;
+      text-align: center;
+    }
+    .status-badge--done { background: oklch(var(--su)/0.15); color: oklch(var(--su)/0.9); }
+    .status-badge--wip { background: oklch(var(--wa)/0.15); color: oklch(var(--wa)/0.85); }
+    .status-badge--none { background: oklch(var(--bc)/0.06); color: oklch(var(--bc)/0.3); }
   </style>
 </head>
 <body class="min-h-screen bg-base-200">
@@ -53,11 +156,11 @@
   <script>
     function updateThemeIcon() {
       var theme = document.documentElement.getAttribute('data-theme');
-      document.getElementById('theme-icon').textContent = theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+      document.getElementById('theme-icon').textContent = theme === 'osteo-dark' ? '\u2600\uFE0F' : '\uD83C\uDF19';
     }
     function toggleTheme() {
       var current = document.documentElement.getAttribute('data-theme');
-      var next = current === 'dark' ? 'light' : 'dark';
+      var next = current === 'osteo-dark' ? 'osteo-light' : 'osteo-dark';
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
       updateThemeIcon();

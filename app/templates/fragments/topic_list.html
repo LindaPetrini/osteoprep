@@ -1,7 +1,25 @@
 {% if topics %}
-<div class="px-2 pt-2">
+{# Topic emoji map #}
+{% set topic_emojis = {
+  "cellula-eucariotica": "🔬", "membrana-cellulare": "🫧", "nucleo-cellulare": "🎯",
+  "mitocondri": "⚡", "dna-rna-proteine": "🧬", "mitosi-meiosi": "🔄",
+  "genetica-mendeliana": "🫛", "fotosintesi": "🌿", "respirazione-cellulare": "🫁",
+  "tessuti-animali": "🦴", "sistemi-organo": "❤️", "sistema-nervoso": "🧠",
+  "evoluzione-selezione": "🦎", "virus-procarioti": "🦠", "biotecnologie-dna": "🧪",
+  "atomo-struttura": "⚛️", "tavola-periodica": "🔢", "legami-chimici": "🔗",
+  "nomenclatura-inorganica": "🏷️", "reazioni-chimiche": "💥", "ossidoriduzione": "🔋",
+  "acidi-basi-ph": "🧫", "equilibrio-chimico": "⚖️", "soluzioni-proprieta": "💧",
+  "chimica-organica": "♻️", "carboidrati": "🍞", "lipidi": "🫒",
+  "proteine-struttura": "🏗️", "enzimi": "✂️",
+  "grandezze-fisiche": "📏", "cinematica": "🏃", "dinamica": "🍎",
+  "meccanica-fluidi": "🌊", "termodinamica": "🌡️", "elettromagnetismo": "🧲",
+  "algebra-aritmetica": "🔣", "geometria": "📐", "funzioni": "📈",
+  "probabilita-statistica": "🎲"
+} %}
+
+<div style="padding: 0 0.75rem 0.75rem;">
   <a href="/subject/{{ subject }}/quiz"
-     class="btn btn-outline btn-sm w-full" style="min-height: 44px;">
+     class="btn btn-sm" style="width: 100%; min-height: 40px; background: oklch(var(--p)/0.08); color: oklch(var(--p)); border: 1px solid oklch(var(--p)/0.2); font-weight: 600; border-radius: 0.625rem; margin-bottom: 0.5rem;">
     Quiz
     {% if subject == "biology" %}Biologia
     {% elif subject == "chemistry" %}Chimica
@@ -10,34 +28,36 @@
     {% else %}{{ subject }}{% endif %}
     — 10 domande miste
   </a>
-</div>
-<ul class="menu menu-sm w-full p-2">
-  {% for topic in topics %}
-  {% set c = completions.get(topic.slug, {}) %}
-  <li>
-    <a href="/topic/{{ topic.slug }}"
-       class="min-h-[44px] flex items-center text-sm text-base-content hover:bg-base-200 rounded-lg px-3">
-      {{ topic.title_it }}
-      <span class="ml-auto flex items-center gap-2">
-        <!-- 3-signal dots: explainer, quiz, cards -->
-        <span style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('explainer_read') %}#3b82f6{% else %}#d1d5db{% endif %};"></span>
-          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('quiz_passed') %}#22c55e{% else %}#d1d5db{% endif %};"></span>
-          <span style="width:4px; height:14px; border-radius:2px; background-color:{% if c.get('cards_learned') %}#a855f7{% else %}#d1d5db{% endif %};"></span>
-        </span>
-        <!-- Level badge -->
-        {% if c.get('level') == 2 %}
-        <span class="badge badge-success badge-xs">Fatto</span>
-        {% elif c.get('level') == 1 %}
-        <span class="badge badge-warning badge-xs">In corso</span>
-        {% else %}
-        <span class="badge badge-ghost badge-xs">—</span>
-        {% endif %}
+
+  <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+    {% for topic in topics %}
+    {% set c = completions.get(topic.slug, {}) %}
+    <a href="/topic/{{ topic.slug }}" class="topic-row">
+      <!-- Topic emoji -->
+      <span style="font-size: 1.125rem; width: 2rem; text-align: center; flex-shrink: 0;">{{ topic_emojis.get(topic.slug, "📖") }}</span>
+
+      <!-- Title -->
+      <span style="flex: 1; min-width: 0; font-size: 0.8125rem; font-weight: 500; color: oklch(var(--bc)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ topic.title_it }}</span>
+
+      <!-- Progress dots -->
+      <span style="display: flex; gap: 3px; align-items: center; flex-shrink: 0; margin-right: 0.25rem;">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if c.get('explainer_read') %}oklch(var(--in)){% else %}oklch(var(--bc)/0.12){% endif %};"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if c.get('quiz_passed') %}oklch(var(--su)){% else %}oklch(var(--bc)/0.12){% endif %};"></span>
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: {% if c.get('cards_learned') %}oklch(var(--p)){% else %}oklch(var(--bc)/0.12){% endif %};"></span>
       </span>
+
+      <!-- Status badge (fixed width for alignment) -->
+      {% if c.get('level') == 2 %}
+      <span class="status-badge status-badge--done">Fatto</span>
+      {% elif c.get('level') == 1 %}
+      <span class="status-badge status-badge--wip">In corso</span>
+      {% else %}
+      <span class="status-badge status-badge--none">—</span>
+      {% endif %}
     </a>
-  </li>
-  {% endfor %}
-</ul>
+    {% endfor %}
+  </div>
+</div>
 {% else %}
-<p class="text-center text-base-content/40 py-4 text-sm">Nessun argomento in questo soggetto.</p>
+<p style="text-align: center; color: oklch(var(--bc)/0.4); padding: 1rem; font-size: 0.875rem;">Nessun argomento in questo soggetto.</p>
 {% endif %}

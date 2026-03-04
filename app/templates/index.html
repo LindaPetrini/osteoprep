@@ -2,80 +2,94 @@
 {% block title %}OsteoPrep - Argomenti{% endblock %}
 {% block content %}
 
-<div class="mb-6">
-  <h1 class="text-2xl font-bold text-base-content">OsteoPrep</h1>
-  <p class="text-base-content/60 text-sm mt-1">Preparazione esame professioni sanitarie</p>
+<!-- Header -->
+<div style="margin-bottom: 1.5rem;">
+  <h1 style="font-size: 1.625rem; font-weight: 800; color: oklch(var(--bc)); letter-spacing: -0.02em;">OsteoPrep</h1>
+  <p style="color: oklch(var(--bc)/0.5); font-size: 0.8125rem; margin-top: 0.25rem;">Preparazione esame professioni sanitarie</p>
 </div>
 
-<!-- Dual action buttons: Progressi + Esame pratica -->
-<div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-  <a href="/progress" class="btn btn-outline btn-sm flex-1" style="min-height: 44px;">Progressi</a>
-  <a href="/exam" class="btn btn-outline btn-sm flex-1" style="min-height: 44px;">Esame pratica</a>
+<!-- Action cards row -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+  <a href="/progress" class="card" style="display: flex; align-items: center; gap: 0.625rem; padding: 0.875rem 1rem; background: oklch(var(--p)/0.08); border: 1px solid oklch(var(--p)/0.15); border-radius: 0.875rem; text-decoration: none; min-height: 44px;">
+    <span style="font-size: 1.25rem;">📊</span>
+    <span style="font-size: 0.8125rem; font-weight: 600; color: oklch(var(--bc));">Progressi</span>
+  </a>
+  <a href="/exam" class="card" style="display: flex; align-items: center; gap: 0.625rem; padding: 0.875rem 1rem; background: oklch(var(--s)/0.08); border: 1px solid oklch(var(--s)/0.15); border-radius: 0.875rem; text-decoration: none; min-height: 44px;">
+    <span style="font-size: 1.25rem;">📝</span>
+    <span style="font-size: 0.8125rem; font-weight: 600; color: oklch(var(--bc));">Esame pratica</span>
+  </a>
 </div>
 
 <!-- Due today banner -->
 {% if due_count and due_count > 0 %}
-<div style="display: flex; align-items: center; justify-content: space-between; background-color: oklch(var(--wa)/0.15); border: 1px solid oklch(var(--wa)/0.4); border-radius: 0.75rem; padding: 0.875rem 1rem; margin-bottom: 1rem;">
+<div style="display: flex; align-items: center; justify-content: space-between; background: oklch(var(--wa)/0.1); border: 1px solid oklch(var(--wa)/0.25); border-radius: 0.875rem; padding: 0.875rem 1rem; margin-bottom: 1.25rem;">
   <div>
-    <p style="font-weight: 700; font-size: 0.9375rem; margin: 0; color: oklch(var(--wac, var(--bc)));">{{ due_count }} carte in scadenza oggi</p>
-    <p style="font-size: 0.8125rem; color: oklch(var(--bc)/0.6); margin: 0.2rem 0 0;">Inizia il ripasso SRS</p>
+    <p style="font-weight: 700; font-size: 0.875rem; margin: 0; color: oklch(var(--bc));">{{ due_count }} carte da ripassare</p>
+    <p style="font-size: 0.75rem; color: oklch(var(--bc)/0.5); margin: 0.125rem 0 0;">Il ripasso SRS ti aspetta</p>
   </div>
-  <a href="/review" class="btn btn-sm btn-warning" style="min-height: 44px; flex-shrink: 0;">Inizia</a>
+  <a href="/review" class="btn btn-sm" style="min-height: 40px; background: oklch(var(--wa)); color: oklch(var(--wac)); border: none; border-radius: 0.625rem; font-weight: 600;">Inizia</a>
 </div>
 {% endif %}
 
 <!-- Topic search -->
-<div style="margin-bottom: 1rem;">
-  <input type="search" id="topic-search" placeholder="Cerca argomento..."
-         style="width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.9375rem; box-sizing: border-box;"
-         hx-get="/search"
-         hx-target="#search-results"
-         hx-trigger="input changed delay:300ms, search"
-         name="q"
-         autocomplete="off">
+<div style="margin-bottom: 1.25rem;">
+  <div style="position: relative;">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: oklch(var(--bc)/0.35); pointer-events: none;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" id="topic-search" placeholder="Cerca argomento..."
+           style="width: 100%; padding: 0.625rem 0.75rem 0.625rem 2.25rem; background: oklch(var(--b1)); border: 1px solid oklch(var(--b3)); border-radius: 0.75rem; font-size: 0.875rem; box-sizing: border-box; color: oklch(var(--bc)); outline: none; transition: border-color 0.2s;"
+           onfocus="this.style.borderColor='oklch(var(--p)/0.5)'"
+           onblur="this.style.borderColor='oklch(var(--b3))'"
+           hx-get="/search"
+           hx-target="#search-results"
+           hx-trigger="input changed delay:300ms, search"
+           name="q"
+           autocomplete="off">
+  </div>
   <div id="search-results"></div>
 </div>
 
 <!-- Recent topics -->
 {% if recent_topics %}
-<div style="margin-bottom: 1.25rem;">
-  <p style="font-size: 0.6875rem; font-weight: 600; color: oklch(var(--bc)/0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;">Recenti</p>
-  <div style="display: flex; flex-direction: column; gap: 0.375rem;">
+<div style="margin-bottom: 1.5rem;">
+  <p style="font-size: 0.6875rem; font-weight: 600; color: oklch(var(--bc)/0.4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;">Recenti</p>
+  <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.25rem;">
     {% for topic in recent_topics %}
-    <a href="/topic/{{ topic.slug }}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.625rem 0.75rem; background: oklch(var(--b1)); border: 1px solid oklch(var(--b3)); border-radius: 0.625rem; text-decoration: none;">
-      <div>
-        <p style="font-size: 0.875rem; font-weight: 600; color: oklch(var(--bc)); margin: 0;">{{ topic.title_it }}</p>
-        <p style="font-size: 0.75rem; color: oklch(var(--bc)/0.5); margin: 0.1rem 0 0; text-transform: capitalize;">
-          {% if topic.subject == "biology" %}Biologia{% elif topic.subject == "chemistry" %}Chimica{% elif topic.subject == "physics" %}Fisica{% else %}{{ topic.subject }}{% endif %}
-        </p>
-      </div>
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: oklch(var(--bc)/0.3); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    <a href="/topic/{{ topic.slug }}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.875rem; background: oklch(var(--b1)); border: 1px solid oklch(var(--b3)); border-radius: 2rem; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: border-color 0.2s, background 0.2s;" onmouseover="this.style.borderColor='oklch(var(--p)/0.3)'" onmouseout="this.style.borderColor='oklch(var(--b3))'">
+      <span style="font-size: 0.8125rem; font-weight: 500; color: oklch(var(--bc));">{{ topic.title_it }}</span>
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="color: oklch(var(--bc)/0.3); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
     </a>
     {% endfor %}
   </div>
 </div>
 {% endif %}
 
-<div id="subject-accordions" style="display: flex; flex-direction: column; gap: 0.75rem;">
+<!-- Subject sections -->
+<div id="subject-accordions" style="display: flex; flex-direction: column; gap: 0.875rem;">
+  {% set subject_icons = {"biology": "🧬", "chemistry": "⚗️", "physics": "⚡", "logic": "🧩"} %}
+  {% set subject_colors = {"biology": "155", "chemistry": "310", "physics": "80", "logic": "230"} %}
+  {% set subject_names = {"biology": "Biologia", "chemistry": "Chimica", "physics": "Fisica e Matematica", "logic": "Logica"} %}
   {% for subject in subjects %}
-  <div class="collapse collapse-arrow bg-base-100 border border-base-300 rounded-lg">
-    <input type="checkbox" name="subject-{{ subject }}" class="peer" />
-    <div class="collapse-title min-h-[44px] flex items-center text-base font-semibold capitalize text-base-content">
-      {% if subject == "biology" %}Biologia
-      {% elif subject == "chemistry" %}Chimica
-      {% elif subject == "physics" %}Fisica e Matematica
-      {% elif subject == "logic" %}Logica
-      {% else %}{{ subject }}
-      {% endif %}
-    </div>
-    <div class="collapse-content p-0"
+  {% set hue = subject_colors.get(subject, "260") %}
+  <div class="subject-card">
+    <label style="display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1rem; cursor: pointer; min-height: 44px;">
+      <input type="checkbox" name="subject-{{ subject }}" class="peer" style="display: none;" onchange="this.closest('.subject-card').querySelector('.subject-body').classList.toggle('hidden')"/>
+      <span style="font-size: 1.5rem; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; background: oklch(75% 0.08 {{ hue }}/0.15); border-radius: 0.75rem; flex-shrink: 0;">{{ subject_icons.get(subject, "📚") }}</span>
+      <div style="flex: 1; min-width: 0;">
+        <p style="font-size: 0.9375rem; font-weight: 700; color: oklch(var(--bc)); margin: 0;">{{ subject_names.get(subject, subject) }}</p>
+        <p style="font-size: 0.75rem; color: oklch(var(--bc)/0.45); margin: 0.125rem 0 0;">
+          {% if subject == "biology" %}15 argomenti{% elif subject == "chemistry" %}14 argomenti{% elif subject == "physics" %}10 argomenti{% endif %}
+        </p>
+      </div>
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: oklch(var(--bc)/0.3); flex-shrink: 0; transition: transform 0.2s;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    </label>
+    <div class="subject-body hidden"
          hx-get="/subjects/{{ subject }}/topics"
-         hx-trigger="revealed"
+         hx-trigger="intersect once"
          hx-swap="innerHTML">
-      <div class="px-4 py-3 space-y-2">
-        <div class="skeleton h-12 w-full rounded-lg"></div>
-        <div class="skeleton h-12 w-full rounded-lg"></div>
-        <div class="skeleton h-12 w-full rounded-lg"></div>
+      <div style="padding: 0 1rem 1rem;">
+        <div class="skeleton" style="height: 3rem; width: 100%; border-radius: 0.625rem; margin-bottom: 0.5rem;"></div>
+        <div class="skeleton" style="height: 3rem; width: 100%; border-radius: 0.625rem; margin-bottom: 0.5rem;"></div>
+        <div class="skeleton" style="height: 3rem; width: 100%; border-radius: 0.625rem;"></div>
       </div>
     </div>
   </div>
