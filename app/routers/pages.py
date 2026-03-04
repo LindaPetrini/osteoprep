@@ -124,8 +124,8 @@ async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
     """Fetch multiple Wikipedia images related to a topic via search API.
 
     Returns a list of {"src": url, "alt": title} dicts for inline section figures.
+    Skips the first result (usually same as hero image) and filters out .tif files.
     """
-    import re as _re
     images: list[dict] = []
     try:
         async with httpx.AsyncClient(timeout=4.0) as client:
@@ -135,7 +135,7 @@ async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
                     "action": "query",
                     "generator": "search",
                     "gsrsearch": title_en,
-                    "gsrlimit": str(max_images + 4),
+                    "gsrlimit": str(max_images + 6),
                     "prop": "pageimages|info",
                     "piprop": "thumbnail",
                     "pithumbsize": "320",
@@ -148,15 +148,19 @@ async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
                 return []
             data = r.json()
             pages = data.get("query", {}).get("pages", [])
-            for page in pages:
+            for i, page in enumerate(pages):
+                if i == 0:
+                    continue  # skip first result — usually same as hero image
                 thumb = page.get("thumbnail", {}).get("source")
-                if thumb:
-                    # Upscale to 320px width
-                    thumb = _re.sub(r"/\d+px-", "/320px-", thumb)
-                    images.append({
-                        "src": thumb,
-                        "alt": page.get("title", ""),
-                    })
+                if not thumb:
+                    continue
+                # Skip .tif files — browsers can't display them
+                if ".tif" in thumb.lower():
+                    continue
+                images.append({
+                    "src": thumb,
+                    "alt": page.get("title", ""),
+                })
                 if len(images) >= max_images:
                     break
     except Exception:
