@@ -82,7 +82,7 @@
 {% endif %}
 
 {% else %}
-{# Linda style: flowing prose with ## headings rendered flat (no collapsible sections, no micro-questions) #}
+{# Linda style: flowing prose with ## headings rendered flat, micro-questions after content #}
 <div class="prose max-w-none text-base-content leading-relaxed
             prose-headings:text-base-content prose-headings:font-bold
             prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:border-b prose-h2:border-base-300 prose-h2:pb-1
@@ -90,6 +90,36 @@
      style="font-size: 1rem;">
   {{ content | render_content | safe }}
 </div>
+
+{# Show all micro-questions after the prose #}
+{% if sq_map %}
+<div style="margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+  <p style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem;">Mettiti alla prova</p>
+  {% for section_slug, sq in sq_map.items() %}
+  {% set sq_questions = sq.questions_json | fromjson if sq.questions_json else [{"question_it": sq.question_it, "choices": sq.choices_json | fromjson, "correct_index": sq.correct_index}] %}
+  {% for q_data in sq_questions %}
+  <div id="sq-{{ sq.id }}-q{{ loop.index0 }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
+    <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
+    <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}?q_index={{ loop.index0 }}"
+          hx-target="#sq-{{ sq.id }}-q{{ loop.index0 }}"
+          hx-swap="outerHTML">
+      {% set shuffled = shuffle_choices(q_data.choices) %}
+      {% for orig_idx, choice in shuffled %}
+      <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
+        <input type="radio" name="answer" value="{{ orig_idx }}"
+               class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
+        <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
+      </label>
+      {% endfor %}
+      <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
+        Controlla
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+  {% endfor %}
+</div>
+{% endif %}
 {% endif %}
 
 {% else %}
