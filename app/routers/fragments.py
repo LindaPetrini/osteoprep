@@ -103,8 +103,15 @@ async def topic_content_fragment(
         for sq in sq_result.scalars().all()
     }
 
+    # Fetch section images for inline figures
+    from app.routers.pages import _get_section_images
+    try:
+        section_images = await _get_section_images(topic.title_en)
+    except Exception:
+        section_images = []
+
     return templates.TemplateResponse(
         request=request,
         name="fragments/explainer_content.html",
-        context={"topic": topic, "lang": lang, "style": style, "section_questions": section_questions},
+        context={"topic": topic, "lang": lang, "style": style, "section_questions": section_questions, "section_images": section_images},
     )

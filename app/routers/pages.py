@@ -120,6 +120,50 @@ async def _get_wikipedia_info(title_en: str) -> dict | None:
     return None
 
 
+async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
+    """Fetch multiple Wikipedia images related to a topic via search API.
+
+    Returns a list of {"src": url, "alt": title} dicts for inline section figures.
+    """
+    import re as _re
+    images: list[dict] = []
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            r = await client.get(
+                "https://en.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "generator": "search",
+                    "gsrsearch": title_en,
+                    "gsrlimit": str(max_images + 4),
+                    "prop": "pageimages|info",
+                    "piprop": "thumbnail",
+                    "pithumbsize": "320",
+                    "format": "json",
+                    "formatversion": "2",
+                },
+                headers={"User-Agent": "OsteoPrep/1.0"},
+            )
+            if r.status_code != 200:
+                return []
+            data = r.json()
+            pages = data.get("query", {}).get("pages", [])
+            for page in pages:
+                thumb = page.get("thumbnail", {}).get("source")
+                if thumb:
+                    # Upscale to 320px width
+                    thumb = _re.sub(r"/\d+px-", "/320px-", thumb)
+                    images.append({
+                        "src": thumb,
+                        "alt": page.get("title", ""),
+                    })
+                if len(images) >= max_images:
+                    break
+    except Exception:
+        pass
+    return images
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: AsyncSession = Depends(get_db)):
     subjects_result = await db.execute(
@@ -220,8 +264,12 @@ async def topic_page(
         for sq in sq_result.scalars().all()
     }
 
-    # Wikipedia image (3s timeout — optional, never blocks the page)
-    wiki = await _get_wikipedia_info(topic.title_en)
+    # Wikipedia image + section figures (optional, never blocks the page)
+    wiki, section_images = await _get_wikipedia_info(topic.title_en), []
+    try:
+        section_images = await _get_section_images(topic.title_en)
+    except Exception:
+        pass
 
     completion = await get_topic_completion(db, slug)
     due_count = await fsrs_service.get_due_count(db)
@@ -247,6 +295,7 @@ async def topic_page(
             "topic": topic,
             "lang": lang,
             "wiki": wiki,
+            "section_images": section_images,
             "active_tab": "topics",
             "due_count": due_count,
             "style": style,

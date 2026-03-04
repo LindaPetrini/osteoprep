@@ -6,6 +6,7 @@
   {% set content = topic.content_it if lang == "it" else topic.content_en %}
 {% endif %}
 {% set sq_map = section_questions if section_questions is defined else {} %}
+{% set imgs = section_images if section_images is defined else [] %}
 
 {% if content %}
 
@@ -22,6 +23,18 @@
       {{ section.heading }}
     </div>
     <div class="collapse-content">
+      {# Inline figure for this section #}
+      {% if imgs and loop.index0 > 0 and loop.index0 % 2 == 0 %}
+      {% set img_idx = (loop.index0 // 2) - 1 %}
+      {% if img_idx >= 0 and img_idx < imgs | length %}
+      <figure style="margin: 0 0 0.75rem; text-align: center;">
+        <img src="{{ imgs[img_idx].src }}" alt="{{ imgs[img_idx].alt }}"
+             loading="lazy"
+             style="width: 100%; max-height: 180px; object-fit: cover; border-radius: 0.75rem; border: 1px solid oklch(var(--b3));">
+        <figcaption style="font-size: 0.6875rem; color: oklch(var(--bc)/0.45); margin-top: 0.25rem;">{{ imgs[img_idx].alt }}</figcaption>
+      </figure>
+      {% endif %}
+      {% endif %}
       <div class="prose max-w-none text-base-content leading-relaxed
                   prose-headings:text-base-content prose-headings:font-bold
                   prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
@@ -85,11 +98,12 @@
 {# Linda style: split by ## headings, interleave micro-questions after each section #}
 {% set linda_sections = content | split_sections %}
 {% set q_dist = distribute_questions(sq_map, linda_sections | length) %}
+{% set img_interval = (linda_sections | length // (imgs | length + 1)) if imgs else 999 %}
 
 {% for section in linda_sections %}
 <div style="{% if not loop.first %}margin-top: 1.5rem;{% endif %}">
   {% if section.heading %}
-  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e5e7eb;">{{ section.heading }}</h2>
+  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid oklch(var(--b3));">{{ section.heading }}</h2>
   {% endif %}
   <div class="prose max-w-none text-base-content leading-relaxed
               prose-headings:text-base-content prose-headings:font-bold
@@ -97,6 +111,19 @@
        style="font-size: 1rem;">
     {{ section.body | render_content | safe }}
   </div>
+
+  {# Inline figure — show one image every ~2 sections #}
+  {% if imgs and loop.index0 > 0 and loop.index0 % 2 == 1 %}
+  {% set img_idx = (loop.index0 // 2) %}
+  {% if img_idx < imgs | length %}
+  <figure style="margin: 1rem 0 0.5rem; text-align: center;">
+    <img src="{{ imgs[img_idx].src }}" alt="{{ imgs[img_idx].alt }}"
+         loading="lazy"
+         style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 0.75rem; border: 1px solid oklch(var(--b3));">
+    <figcaption style="font-size: 0.6875rem; color: oklch(var(--bc)/0.45); margin-top: 0.25rem;">{{ imgs[img_idx].alt }}</figcaption>
+  </figure>
+  {% endif %}
+  {% endif %}
 
   {# Interleaved micro-questions for this section #}
   {% set section_qs = q_dist.get(loop.index0, []) %}
