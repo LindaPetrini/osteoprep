@@ -168,6 +168,11 @@ async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
     return images
 
 
+@router.get("/privacy", response_class=HTMLResponse)
+async def privacy(request: Request):
+    return templates.TemplateResponse(request=request, name="privacy.html")
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: AsyncSession = Depends(get_db)):
     subjects_result = await db.execute(
