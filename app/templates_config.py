@@ -92,8 +92,34 @@ def shuffle_choices(choices: list[str]) -> list[tuple[int, str]]:
     return indexed
 
 
+def distribute_questions(sq_map: dict, num_sections: int) -> dict[int, list]:
+    """Flatten all section questions and distribute across N sections (by index).
+    Returns {section_index: [(sq_id, q_index, q_data), ...]}.
+    Spreads questions evenly so each prose section gets ~equal mini-tests."""
+    all_qs = []
+    for sq in sq_map.values():
+        questions = json.loads(sq["questions_json"]) if sq.get("questions_json") else [
+            {"question_it": sq["question_it"], "choices": json.loads(sq["choices_json"]) if isinstance(sq["choices_json"], str) else sq["choices_json"], "correct_index": sq["correct_index"]}
+        ]
+        for qi, q_data in enumerate(questions):
+            all_qs.append((sq["id"], qi, q_data))
+
+    if not all_qs or num_sections <= 0:
+        return {}
+
+    # Distribute round-robin across sections (skip index 0 if it's just intro text)
+    start = 1 if num_sections > 1 else 0
+    slots = max(num_sections - start, 1)
+    result: dict[int, list] = {}
+    for i, q_tuple in enumerate(all_qs):
+        idx = start + (i % slots)
+        result.setdefault(idx, []).append(q_tuple)
+    return result
+
+
 templates.env.filters["render_content"] = render_content
 templates.env.filters["uncertainty"] = render_uncertainty_markers
 templates.env.filters["split_sections"] = split_sections
 templates.env.filters["fromjson"] = json.loads
 templates.env.globals["shuffle_choices"] = shuffle_choices
+templates.env.globals["distribute_questions"] = distribute_questions

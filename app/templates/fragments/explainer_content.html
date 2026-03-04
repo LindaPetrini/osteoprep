@@ -82,26 +82,32 @@
 {% endif %}
 
 {% else %}
-{# Linda style: flowing prose with ## headings rendered flat, micro-questions after content #}
-<div class="prose max-w-none text-base-content leading-relaxed
-            prose-headings:text-base-content prose-headings:font-bold
-            prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:border-b prose-h2:border-base-300 prose-h2:pb-1
-            prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
-     style="font-size: 1rem;">
-  {{ content | render_content | safe }}
-</div>
+{# Linda style: split by ## headings, interleave micro-questions after each section #}
+{% set linda_sections = content | split_sections %}
+{% set q_dist = distribute_questions(sq_map, linda_sections | length) %}
 
-{# Show all micro-questions after the prose #}
-{% if sq_map %}
-<div style="margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
-  <p style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem;">Mettiti alla prova</p>
-  {% for section_slug, sq in sq_map.items() %}
-  {% set sq_questions = sq.questions_json | fromjson if sq.questions_json else [{"question_it": sq.question_it, "choices": sq.choices_json | fromjson, "correct_index": sq.correct_index}] %}
-  {% for q_data in sq_questions %}
-  <div id="sq-{{ sq.id }}-q{{ loop.index0 }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
+{% for section in linda_sections %}
+<div style="{% if not loop.first %}margin-top: 1.5rem;{% endif %}">
+  {% if section.heading %}
+  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e5e7eb;">{{ section.heading }}</h2>
+  {% endif %}
+  <div class="prose max-w-none text-base-content leading-relaxed
+              prose-headings:text-base-content prose-headings:font-bold
+              prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
+       style="font-size: 1rem;">
+    {{ section.body | render_content | safe }}
+  </div>
+
+  {# Interleaved micro-questions for this section #}
+  {% set section_qs = q_dist.get(loop.index0, []) %}
+  {% for sq_id, q_idx, q_data in section_qs %}
+  <div id="sq-{{ sq_id }}-q{{ q_idx }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
+    <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+      Verifica rapida
+    </p>
     <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
-    <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}?q_index={{ loop.index0 }}"
-          hx-target="#sq-{{ sq.id }}-q{{ loop.index0 }}"
+    <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq_id }}?q_index={{ q_idx }}"
+          hx-target="#sq-{{ sq_id }}-q{{ q_idx }}"
           hx-swap="outerHTML">
       {% set shuffled = shuffle_choices(q_data.choices) %}
       {% for orig_idx, choice in shuffled %}
@@ -117,9 +123,8 @@
     </form>
   </div>
   {% endfor %}
-  {% endfor %}
 </div>
-{% endif %}
+{% endfor %}
 {% endif %}
 
 {% else %}
