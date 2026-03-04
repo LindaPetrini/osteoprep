@@ -77,8 +77,7 @@
 {% if wiki and wiki.image %}
 <div style="margin-bottom: 1.25rem;">
   <img src="{{ wiki.image }}" alt="{{ topic.title_en }}"
-       class="w-full rounded-lg object-cover"
-       style="max-height: 220px;"
+       style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 0.75rem;"
        loading="lazy">
   <p style="font-size: 0.75rem; color: #9ca3af; text-align: right; margin-top: 0.25rem;">
     <a href="{{ wiki.url }}" target="_blank" rel="noopener" style="color: #9ca3af; text-decoration: underline;">

@@ -109,7 +109,7 @@ async def _get_wikipedia_info(title_en: str) -> dict | None:
                 thumb = data.get("thumbnail", {}).get("source")
                 if thumb:
                     # Upscale thumbnail to 400px for hero display
-                    thumb = _re.sub(r"/\d+px-", "/400px-", thumb)
+                    thumb = _re.sub(r"/\d+px-", "/560px-", thumb)
                 return {
                     "image": thumb,
                     "url": data.get("content_urls", {}).get("desktop", {}).get("page"),
@@ -138,7 +138,7 @@ async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
                     "gsrlimit": str(max_images + 6),
                     "prop": "pageimages|info",
                     "piprop": "thumbnail",
-                    "pithumbsize": "320",
+                    "pithumbsize": "400",
                     "format": "json",
                     "formatversion": "2",
                 },
