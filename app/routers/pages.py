@@ -14,6 +14,7 @@ from app.models import QuizAttempt, SectionQuestion, Topic
 from app.services.claude import generate_explainer, generate_linda_explainer, generate_section_questions
 from app.services import fsrs_service
 from app.services.completion_service import get_topic_completion
+from app.api_key import get_user_api_key
 from app.templates_config import templates
 
 logger = logging.getLogger(__name__)
@@ -25,14 +26,17 @@ _generating_sq: set[str] = set()
 _generating_linda: set[str] = set()
 
 
-async def _generate_and_cache(slug: str) -> None:
+async def _generate_and_cache(slug: str, api_key: str | None = None) -> None:
     """Background task: generate explainer with its own DB session."""
+    if not api_key:
+        _generating.discard(slug)
+        return
     async with AsyncSessionLocal() as db:
         try:
             topic = await db.scalar(select(Topic).where(Topic.slug == slug))
             if topic is None or topic.content_it is not None:
                 return
-            content_it, content_en = await generate_explainer(topic.title_it, topic.title_en)
+            content_it, content_en = await generate_explainer(topic.title_it, topic.title_en, api_key=api_key)
             topic.content_it = content_it
             topic.content_en = content_en
             topic.generated_at = datetime.utcnow()
@@ -44,14 +48,17 @@ async def _generate_and_cache(slug: str) -> None:
             _generating.discard(slug)
 
 
-async def _generate_linda_and_cache(slug: str) -> None:
+async def _generate_linda_and_cache(slug: str, api_key: str | None = None) -> None:
     """Background task: generate Linda-style explainer with its own DB session."""
+    if not api_key:
+        _generating_linda.discard(slug)
+        return
     async with AsyncSessionLocal() as db:
         try:
             topic = await db.scalar(select(Topic).where(Topic.slug == slug))
             if topic is None or topic.content_linda_it is not None:
                 return
-            content_it, content_en = await generate_linda_explainer(topic.title_it, topic.title_en)
+            content_it, content_en = await generate_linda_explainer(topic.title_it, topic.title_en, api_key=api_key)
             topic.content_linda_it = content_it
             topic.content_linda_en = content_en
             await db.commit()
@@ -62,14 +69,17 @@ async def _generate_linda_and_cache(slug: str) -> None:
             _generating_linda.discard(slug)
 
 
-async def _generate_section_questions(slug: str) -> None:
+async def _generate_section_questions(slug: str, api_key: str | None = None) -> None:
     """Background task: generate section questions for a topic."""
+    if not api_key:
+        _generating_sq.discard(slug)
+        return
     async with AsyncSessionLocal() as db:
         try:
             topic = await db.scalar(select(Topic).where(Topic.slug == slug))
             if topic is None or topic.content_it is None:
                 return
-            sq_data = await generate_section_questions(slug, topic.title_it, topic.content_it)
+            sq_data = await generate_section_questions(slug, topic.title_it, topic.content_it, api_key=api_key)
             for section_slug, q_data in sq_data.items():
                 # q_data is a list of {question_it, choices, correct_index}
                 first_q = q_data[0] if isinstance(q_data, list) else q_data
@@ -247,15 +257,17 @@ async def topic_page(
     if lang not in ("it", "en"):
         lang = "it"
 
+    user_api_key = get_user_api_key(request)
+
     # Non-blocking: start generation in background if content missing
     if topic.content_it is None and slug not in _generating:
         _generating.add(slug)
-        background_tasks.add_task(_generate_and_cache, slug)
+        background_tasks.add_task(_generate_and_cache, slug, api_key=user_api_key)
 
     # Non-blocking: generate Linda-style content if missing
     if topic.content_it is not None and topic.content_linda_it is None and slug not in _generating_linda:
         _generating_linda.add(slug)
-        background_tasks.add_task(_generate_linda_and_cache, slug)
+        background_tasks.add_task(_generate_linda_and_cache, slug, api_key=user_api_key)
 
     # Non-blocking: generate section questions once content exists
     if topic.content_it is not None and slug not in _generating_sq:
@@ -264,7 +276,7 @@ async def topic_page(
         )
         if sq_count == 0:
             _generating_sq.add(slug)
-            background_tasks.add_task(_generate_section_questions, slug)
+            background_tasks.add_task(_generate_section_questions, slug, api_key=user_api_key)
 
     # Query existing section questions for inline display
     sq_result = await db.execute(

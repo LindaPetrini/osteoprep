@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db, AsyncSessionLocal
 from app.models import ExamQuestion, PracticeTestAnswer, PracticeTestAttempt
 from app.services import fsrs_service
+from app.api_key import get_user_api_key
 from app.services.claude import generate_exam_explanation
 from app.templates_config import templates
 
@@ -19,15 +20,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def _prefetch_exam_explanations(question_ids: list[int]) -> None:
+async def _prefetch_exam_explanations(question_ids: list[int], api_key: str | None = None) -> None:
     """Background task: generate explanations for exam questions that don't have them yet."""
+    if not api_key:
+        return
     async with AsyncSessionLocal() as bg_db:
         for qid in question_ids:
             q = await bg_db.get(ExamQuestion, qid)
             if q and q.explanation_json is None:
                 try:
                     choices = json.loads(q.choices_json)
-                    exp = await generate_exam_explanation(q.question_it, choices, q.correct_index)
+                    exp = await generate_exam_explanation(q.question_it, choices, q.correct_index, api_key=api_key)
                     q.explanation_json = json.dumps(exp, ensure_ascii=False)
                     q.generated_at = datetime.now(timezone.utc)
                     await bg_db.commit()
@@ -103,7 +106,8 @@ async def exam_practice(request: Request, db: AsyncSession = Depends(get_db)):
 
     # Fire background task to pre-generate explanations for selected questions
     question_ids = [q.id for q in questions]
-    asyncio.ensure_future(_prefetch_exam_explanations(question_ids))
+    user_api_key = get_user_api_key(request)
+    asyncio.ensure_future(_prefetch_exam_explanations(question_ids, api_key=user_api_key))
 
     # Server-side start time — used by JS timer for accurate countdown
     start_time_epoch = int(datetime.now(timezone.utc).timestamp())
@@ -188,6 +192,7 @@ async def exam_submit(request: Request, db: AsyncSession = Depends(get_db)):
     )
     questions = {q.id: q for q in result.scalars().all()}
 
+    user_api_key = get_user_api_key(request)
     score = 0
     results_data = []
     answer_rows = []
@@ -207,7 +212,7 @@ async def exam_submit(request: Request, db: AsyncSession = Depends(get_db)):
         if q.explanation_json is None:
             try:
                 explanation = await generate_exam_explanation(
-                    q.question_it, choices, q.correct_index
+                    q.question_it, choices, q.correct_index, api_key=user_api_key
                 )
                 q.explanation_json = json.dumps(explanation, ensure_ascii=False)
                 q.generated_at = datetime.now(timezone.utc)

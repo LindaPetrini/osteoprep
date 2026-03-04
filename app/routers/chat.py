@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api_key import get_user_api_key
 from app.database import get_db
 from app.services.claude import stream_chat_generator, build_chat_system_prompt
 
@@ -29,7 +30,7 @@ async def chat_stream(
             yield "data: [DONE]\n\n"
         return StreamingResponse(empty(), media_type="text/event-stream")
 
-    user_api_key = request.headers.get("X-Anthropic-Key") or None
+    user_api_key = get_user_api_key(request)
     system = await build_chat_system_prompt(topic_slug, db, quiz_context=quiz_context)
     return StreamingResponse(
         stream_chat_generator(q, system, user_api_key=user_api_key),

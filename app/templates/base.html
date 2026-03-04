@@ -214,6 +214,15 @@
     </a>
   </div>
   <script>
+    // Sync API key from localStorage to cookie so server-rendered pages can use it
+    (function() {
+      var key = localStorage.getItem('anthropic_api_key');
+      if (key) {
+        document.cookie = 'anthropic_api_key=' + encodeURIComponent(key) + ';path=/;SameSite=Strict;max-age=31536000';
+      } else {
+        document.cookie = 'anthropic_api_key=;path=/;SameSite=Strict;max-age=0';
+      }
+    })();
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(function() {});
     }

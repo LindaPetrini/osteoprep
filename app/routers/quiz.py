@@ -20,6 +20,7 @@ SUBJECT_NAMES = {
     "logic": "Logica",
 }
 from app.services import fsrs_service
+from app.api_key import get_user_api_key
 from app.services.claude import generate_quiz_explanation, generate_new_quiz_questions
 from app.templates_config import templates
 
@@ -27,15 +28,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-async def _prefetch_explanations(question_ids: list[int]) -> None:
+async def _prefetch_explanations(question_ids: list[int], api_key: str | None = None) -> None:
     """Background task: generate explanations for questions that don't have them yet."""
+    if not api_key:
+        return
     async with AsyncSessionLocal() as bg_db:
         for qid in question_ids:
             q = await bg_db.get(QuizQuestion, qid)
             if q and q.explanation_json is None:
                 try:
                     choices = __json.loads(q.choices_json)
-                    exp = await generate_quiz_explanation(q.question_it, choices, q.correct_index)
+                    exp = await generate_quiz_explanation(q.question_it, choices, q.correct_index, api_key=api_key)
                     q.explanation_json = __json.dumps(exp, ensure_ascii=False)
                     q.generated_at = datetime.now(timezone.utc)
                     await bg_db.commit()
@@ -117,7 +120,8 @@ async def quiz_page(request: Request, slug: str, count: int = 5, db: AsyncSessio
 
     # Fire background task to pre-generate explanations for questions that lack them
     question_ids = [q.id for q in questions]
-    asyncio.ensure_future(_prefetch_explanations(question_ids))
+    user_api_key = get_user_api_key(request)
+    asyncio.ensure_future(_prefetch_explanations(question_ids, api_key=user_api_key))
 
     return templates.TemplateResponse(
         request=request,
@@ -141,6 +145,7 @@ async def _build_results_data(
     submitted: dict,
     questions: dict,
     db,
+    api_key: str | None = None,
 ) -> tuple[int, list[dict]]:
     """Score answers and generate/fetch explanations. Returns (score, results_data)."""
     score = 0
@@ -160,7 +165,7 @@ async def _build_results_data(
         if q.explanation_json is None:
             try:
                 explanation = await generate_quiz_explanation(
-                    q.question_it, choices, q.correct_index
+                    q.question_it, choices, q.correct_index, api_key=api_key
                 )
                 q.explanation_json = _json.dumps(explanation, ensure_ascii=False)
                 q.generated_at = datetime.now(timezone.utc)
@@ -240,7 +245,8 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
     )
     questions = {q.id: q for q in result.scalars().all()}
 
-    score, results_data = await _build_results_data(submitted, questions, db)
+    user_api_key = get_user_api_key(request)
+    score, results_data = await _build_results_data(submitted, questions, db, api_key=user_api_key)
 
     attempt = QuizAttempt(
         topic_slug=slug,
@@ -300,12 +306,14 @@ async def quiz_generate(request: Request, slug: str, db: AsyncSession = Depends(
     )
     existing_questions = [row[0] for row in existing_result.all()]
 
+    user_api_key = get_user_api_key(request)
     try:
         new_questions = await generate_new_quiz_questions(
             topic_slug=slug,
             title_it=topic.title_it,
             count=5,
             existing_questions=existing_questions,
+            api_key=user_api_key,
         )
 
         now = datetime.now(timezone.utc)
@@ -421,7 +429,8 @@ async def subject_quiz_submit(
     )
     questions = {q.id: q for q in result.scalars().all()}
 
-    score, results_data = await _build_results_data(submitted, questions, db)
+    user_api_key = get_user_api_key(request)
+    score, results_data = await _build_results_data(submitted, questions, db, api_key=user_api_key)
 
     attempt = QuizAttempt(
         topic_slug=None,

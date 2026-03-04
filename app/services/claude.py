@@ -1,4 +1,3 @@
-import os
 import re
 import logging
 from anthropic import AsyncAnthropic
@@ -58,15 +57,14 @@ OUTPUT FORMAT — use these exact XML tags, nothing else before or after:
 </EN>"""
 
 
-async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
+async def generate_explainer(title_it: str, title_en: str, api_key: str | None = None) -> tuple[str, str]:
     """
     Generate Italian and English explainers in a single Claude API call.
     Returns (content_it, content_en).
     Never call this when content already exists in DB.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     client = AsyncAnthropic(api_key=api_key)
     logger.info(f"Generating explainer for: {title_it}")
@@ -131,15 +129,13 @@ OUTPUT FORMAT — use these exact XML tags, nothing else before or after:
 </EN>"""
 
 
-async def generate_linda_explainer(title_it: str, title_en: str) -> tuple[str, str]:
+async def generate_linda_explainer(title_it: str, title_en: str, api_key: str | None = None) -> tuple[str, str]:
     """
     Generate Linda-style (first-principles, conversational) explainers.
-    Uses Sonnet for better prose quality.
     Returns (content_linda_it, content_linda_en).
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     client = AsyncAnthropic(api_key=api_key)
     logger.info(f"Generating Linda-style explainer for: {title_it}")
@@ -210,18 +206,17 @@ async def generate_quiz_explanation(
     question_it: str,
     choices: list[str],
     correct_index: int,
+    api_key: str | None = None,
 ) -> dict[str, str]:
     """
     Generate per-choice explanation for a quiz question.
     Returns {"correct": "...", "wrong_0": "...", "wrong_1": "...", "wrong_2": "..."}
-    where wrong_N corresponds to the Nth incorrect choice (in original order, skipping correct).
 
     IMPORTANT: Check explanation_json IS NULL in the DB before calling this.
     Generate-once-cache pattern — never regenerate if explanation already exists.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     client = AsyncAnthropic(api_key=api_key)
 
@@ -292,6 +287,7 @@ async def generate_exam_explanation(
     question_it: str,
     choices: list[str],
     correct_index: int,
+    api_key: str | None = None,
 ) -> dict[str, str]:
     """
     Generate per-choice explanation for an exam question.
@@ -300,9 +296,8 @@ async def generate_exam_explanation(
     IMPORTANT: Check explanation_json IS NULL before calling this.
     Generate-once-cache — never regenerate if explanation already exists.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     client = AsyncAnthropic(api_key=api_key)
 
@@ -427,6 +422,7 @@ async def generate_section_questions(
     topic_slug: str,
     title_it: str,
     content_it: str,
+    api_key: str | None = None,
 ) -> dict[str, list[dict]]:
     """
     Generate 2-3 MCQs per ## section for a topic.
@@ -436,9 +432,8 @@ async def generate_section_questions(
     """
     from app.templates_config import split_sections, SECTION_SLUG_MAP
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     # Extract section slugs present in content
     sections = split_sections(content_it)
@@ -527,15 +522,15 @@ async def generate_new_quiz_questions(
     title_it: str,
     count: int = 5,
     existing_questions: list[str] | None = None,
+    api_key: str | None = None,
 ) -> list[dict]:
     """
     Generate `count` new MCQ questions for a topic.
     Returns list of {question_it, choices, correct_index} dicts.
     existing_questions: list of existing question texts to avoid duplicates.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+        raise RuntimeError("No API key provided")
 
     client = AsyncAnthropic(api_key=api_key)
 
@@ -647,9 +642,8 @@ async def stream_chat_generator(question: str, system_prompt: str, user_api_key:
     Yields: "data: <escaped_chunk>\\n\\n" for each text token
     Yields: "data: [DONE]\\n\\n" on completion
     Handles GeneratorExit (client disconnect) cleanly.
-    Uses user_api_key if provided, otherwise falls back to server ANTHROPIC_API_KEY.
     """
-    api_key = user_api_key or os.environ.get("ANTHROPIC_API_KEY")
+    api_key = user_api_key
     if not api_key:
         yield "data: [ERROR: Nessuna chiave API configurata. Vai su Impostazioni per inserirla.]\n\n"
         return
