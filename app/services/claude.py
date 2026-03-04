@@ -641,16 +641,17 @@ async def build_chat_system_prompt(topic_slug: str, db, quiz_context: str | None
     return "\n".join(parts)
 
 
-async def stream_chat_generator(question: str, system_prompt: str):
+async def stream_chat_generator(question: str, system_prompt: str, user_api_key: str | None = None):
     """
     Async generator yielding SSE-formatted text chunks from Claude streaming.
     Yields: "data: <escaped_chunk>\\n\\n" for each text token
     Yields: "data: [DONE]\\n\\n" on completion
     Handles GeneratorExit (client disconnect) cleanly.
+    Uses user_api_key if provided, otherwise falls back to server ANTHROPIC_API_KEY.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = user_api_key or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        yield "data: [ERROR: ANTHROPIC_API_KEY not set]\n\n"
+        yield "data: [ERROR: Nessuna chiave API configurata. Vai su Impostazioni per inserirla.]\n\n"
         return
 
     client = AsyncAnthropic(api_key=api_key)

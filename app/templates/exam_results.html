@@ -153,14 +153,34 @@ function startExamChatStream(e, examCtx) {
   var target = document.getElementById('eresp-' + uid);
   input.value = '';
   var url = '/chat/stream?q=' + encodeURIComponent(q) + '&quiz_context=' + encodeURIComponent(examCtx || '');
-  var es = new EventSource(url);
-  es.onmessage = function(evt) {
-    if (evt.data === '[DONE]') { es.close(); return; }
-    if (evt.data.startsWith('[ERROR')) { target.textContent += '\n[Errore: ' + evt.data + ']'; es.close(); return; }
-    target.textContent += evt.data.replace(/\\n/g, '\n');
-    messages.scrollTop = messages.scrollHeight;
-  };
-  es.onerror = function() { es.close(); };
+  var headers = {};
+  var userKey = localStorage.getItem('anthropic_api_key');
+  if (userKey) headers['X-Anthropic-Key'] = userKey;
+  fetch(url, { headers: headers }).then(function(response) {
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    function read() {
+      reader.read().then(function(result) {
+        if (result.done) return;
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\n');
+        buffer = lines.pop();
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i];
+          if (line.startsWith('data: ')) {
+            var data = line.slice(6);
+            if (data === '[DONE]') return;
+            if (data.startsWith('[ERROR')) { target.textContent += '\n[Errore: ' + data + ']'; return; }
+            target.textContent += data.replace(/\\n/g, '\n');
+            messages.scrollTop = messages.scrollHeight;
+          }
+        }
+        read();
+      });
+    }
+    read();
+  });
 }
 function escapeHtmlEC(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Impostazioni — OsteoPrep{% endblock %}
+{% block content %}
+<div style="padding-top: 0.5rem;">
+  <h1 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: oklch(var(--bc));">Impostazioni</h1>
+
+  <!-- API Key Section -->
+  <div class="card" style="background: oklch(var(--b1)); border: 1px solid oklch(var(--b3)); border-radius: 1rem; padding: 1.25rem;">
+    <h2 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: oklch(var(--bc));">Chiave API Anthropic</h2>
+    <p style="font-size: 0.8125rem; color: oklch(var(--bc)/0.6); margin-bottom: 1rem;">
+      Per usare la chat AI, inserisci la tua chiave API. La chiave resta nel tuo browser e non viene salvata sul server.
+    </p>
+
+    <!-- Status indicator -->
+    <div id="key-status" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.8125rem;">
+      <span id="key-dot" style="width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;"></span>
+      <span id="key-label"></span>
+    </div>
+
+    <!-- Input -->
+    <div style="position: relative; margin-bottom: 0.75rem;">
+      <input
+        type="password"
+        id="api-key-input"
+        placeholder="sk-ant-..."
+        autocomplete="off"
+        spellcheck="false"
+        style="width: 100%; border: 1px solid oklch(var(--b3)); border-radius: 0.5rem; padding: 0.625rem 2.75rem 0.625rem 0.75rem; font-size: 0.875rem; font-family: monospace; background: oklch(var(--b2)); color: oklch(var(--bc)); outline: none; box-sizing: border-box;">
+      <button
+        type="button"
+        onclick="toggleKeyVisibility()"
+        style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: oklch(var(--bc)/0.5); padding: 0.25rem;"
+        aria-label="Mostra/nascondi chiave">
+        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Buttons -->
+    <div style="display: flex; gap: 0.5rem;">
+      <button onclick="saveApiKey()" class="btn btn-primary btn-sm" style="flex: 1;">Salva</button>
+      <button onclick="clearApiKey()" class="btn btn-outline btn-sm" style="flex: 1;">Rimuovi</button>
+    </div>
+  </div>
+
+  <!-- Info box -->
+  <div style="margin-top: 1rem; padding: 0.875rem 1rem; background: oklch(var(--in)/0.08); border-radius: 0.75rem; font-size: 0.8125rem; color: oklch(var(--bc)/0.7); line-height: 1.5;">
+    <strong>Come ottenere una chiave:</strong><br>
+    1. Vai su <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color: oklch(var(--p)); text-decoration: underline;">console.anthropic.com</a><br>
+    2. Crea una nuova chiave API<br>
+    3. Copiala e incollala qui sopra
+  </div>
+</div>
+
+<script>
+(function() {
+  var input = document.getElementById('api-key-input');
+  var dot = document.getElementById('key-dot');
+  var label = document.getElementById('key-label');
+
+  function updateStatus() {
+    var key = localStorage.getItem('anthropic_api_key');
+    if (key) {
+      dot.style.background = 'oklch(var(--su))';
+      label.textContent = 'Chiave configurata (' + key.slice(0, 10) + '...)';
+      label.style.color = 'oklch(var(--su)/0.9)';
+      input.value = key;
+    } else {
+      dot.style.background = 'oklch(var(--bc)/0.25)';
+      label.textContent = 'Nessuna chiave configurata';
+      label.style.color = 'oklch(var(--bc)/0.5)';
+      input.value = '';
+    }
+  }
+
+  window.saveApiKey = function() {
+    var val = input.value.trim();
+    if (!val) return;
+    localStorage.setItem('anthropic_api_key', val);
+    updateStatus();
+  };
+
+  window.clearApiKey = function() {
+    localStorage.removeItem('anthropic_api_key');
+    input.value = '';
+    updateStatus();
+  };
+
+  window.toggleKeyVisibility = function() {
+    var isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+  };
+
+  updateStatus();
+})();
+</script>
+{% endblock %}

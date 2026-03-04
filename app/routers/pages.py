@@ -173,6 +173,16 @@ async def privacy(request: Request):
     return templates.TemplateResponse(request=request, name="privacy.html")
 
 
+@router.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request, db: AsyncSession = Depends(get_db)):
+    due_count = await fsrs_service.get_due_count(db)
+    return templates.TemplateResponse(
+        request=request,
+        name="settings.html",
+        context={"active_tab": "settings", "due_count": due_count},
+    )
+
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request, db: AsyncSession = Depends(get_db)):
     subjects_result = await db.execute(

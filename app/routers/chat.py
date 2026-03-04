@@ -29,9 +29,10 @@ async def chat_stream(
             yield "data: [DONE]\n\n"
         return StreamingResponse(empty(), media_type="text/event-stream")
 
+    user_api_key = request.headers.get("X-Anthropic-Key") or None
     system = await build_chat_system_prompt(topic_slug, db, quiz_context=quiz_context)
     return StreamingResponse(
-        stream_chat_generator(q, system),
+        stream_chat_generator(q, system, user_api_key=user_api_key),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
