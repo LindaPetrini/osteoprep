@@ -15,6 +15,8 @@ class Topic(Base):
     order_in_subject: Mapped[int] = mapped_column(Integer, default=0)
     content_it: Mapped[str | None] = mapped_column(Text, nullable=True)   # NULL = not yet generated
     content_en: Mapped[str | None] = mapped_column(Text, nullable=True)   # NULL = not yet generated
+    content_linda_it: Mapped[str | None] = mapped_column(Text, nullable=True)  # Linda-style explainer
+    content_linda_en: Mapped[str | None] = mapped_column(Text, nullable=True)  # Linda-style explainer
     generated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 

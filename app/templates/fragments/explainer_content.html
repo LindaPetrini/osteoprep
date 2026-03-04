@@ -1,10 +1,18 @@
-{% set content = topic.content_it if lang == "it" else topic.content_en %}
+{% set current_style = style if style is defined else "linda" %}
+
+{% if current_style == "linda" %}
+  {% set content = topic.content_linda_it if lang == "it" else topic.content_linda_en %}
+{% else %}
+  {% set content = topic.content_it if lang == "it" else topic.content_en %}
+{% endif %}
 {% set sq_map = section_questions if section_questions is defined else {} %}
 
 {% if content %}
+
+{% if current_style == "libro" %}
+{# Libro (textbook) style: collapsible sections with micro-questions #}
 {% set sections = content | split_sections %}
 {% if sections | length > 1 %}
-{# Multiple sections — render as collapsible panels #}
 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
   {% for section in sections %}
   {% if section.heading %}
@@ -20,7 +28,7 @@
            style="font-size: 1rem;">
         {{ section.body | render_content | safe }}
       </div>
-      {# Inline section micro-questions — shown if available (2-3 per section) #}
+      {# Inline section micro-questions — only for libro style #}
       {% set sq = sq_map.get(section.slug) %}
       {% if sq %}
       {% set sq_questions = sq.questions_json | fromjson if sq.questions_json else [{"question_it": sq.question_it, "choices": sq.choices_json | fromjson, "correct_index": sq.correct_index}] %}
@@ -74,8 +82,19 @@
 {% endif %}
 
 {% else %}
+{# Linda style: flowing prose with ## headings rendered flat (no collapsible sections, no micro-questions) #}
+<div class="prose max-w-none text-base-content leading-relaxed
+            prose-headings:text-base-content prose-headings:font-bold
+            prose-h2:text-base prose-h2:mt-5 prose-h2:mb-2 prose-h2:border-b prose-h2:border-base-300 prose-h2:pb-1
+            prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
+     style="font-size: 1rem;">
+  {{ content | render_content | safe }}
+</div>
+{% endif %}
+
+{% else %}
 {# Content not yet generated — poll every 2s until it appears #}
-<div hx-get="/topic/{{ topic.slug }}/content?lang={{ lang }}"
+<div hx-get="/topic/{{ topic.slug }}/content?lang={{ lang }}&style={{ current_style }}"
      hx-trigger="every 2s"
      hx-swap="outerHTML">
   <div class="flex flex-col items-center py-10 gap-3 text-base-content/50">

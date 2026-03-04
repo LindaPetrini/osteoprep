@@ -69,13 +69,14 @@ async def topic_content_fragment(
     request: Request,
     slug: str,
     lang: str = "it",
+    style: str = "linda",
     db: AsyncSession = Depends(get_db),
 ):
     """
     HTMX fragment: explainer content body.
     - If content is ready: returns rendered markdown.
     - If still generating: returns a polling skeleton (HTMX retries every 2s).
-    Language toggle also uses this endpoint.
+    Language/style toggle also uses this endpoint.
     """
     topic = await db.scalar(select(Topic).where(Topic.slug == slug))
     if topic is None:
@@ -83,6 +84,8 @@ async def topic_content_fragment(
 
     if lang not in ("it", "en"):
         lang = "it"
+    if style not in ("linda", "libro"):
+        style = "linda"
 
     sq_result = await db.execute(
         select(SectionQuestion).where(SectionQuestion.topic_slug == slug)
@@ -103,5 +106,5 @@ async def topic_content_fragment(
     return templates.TemplateResponse(
         request=request,
         name="fragments/explainer_content.html",
-        context={"topic": topic, "lang": lang, "section_questions": section_questions},
+        context={"topic": topic, "lang": lang, "style": style, "section_questions": section_questions},
     )

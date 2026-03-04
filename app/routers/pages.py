@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import AsyncSessionLocal, get_db
 from app.models import QuizAttempt, SectionQuestion, Topic
-from app.services.claude import generate_explainer, generate_section_questions
+from app.services.claude import generate_explainer, generate_linda_explainer, generate_section_questions
 from app.services import fsrs_service
 from app.services.completion_service import get_topic_completion
 from app.templates_config import templates
@@ -22,6 +22,7 @@ router = APIRouter()
 # Tracks slugs currently being generated to avoid duplicate API calls
 _generating: set[str] = set()
 _generating_sq: set[str] = set()
+_generating_linda: set[str] = set()
 
 
 async def _generate_and_cache(slug: str) -> None:
@@ -41,6 +42,24 @@ async def _generate_and_cache(slug: str) -> None:
             logger.error(f"Background generation failed for '{slug}': {e}")
         finally:
             _generating.discard(slug)
+
+
+async def _generate_linda_and_cache(slug: str) -> None:
+    """Background task: generate Linda-style explainer with its own DB session."""
+    async with AsyncSessionLocal() as db:
+        try:
+            topic = await db.scalar(select(Topic).where(Topic.slug == slug))
+            if topic is None or topic.content_linda_it is not None:
+                return
+            content_it, content_en = await generate_linda_explainer(topic.title_it, topic.title_en)
+            topic.content_linda_it = content_it
+            topic.content_linda_en = content_en
+            await db.commit()
+            logger.info(f"Linda-style generation complete: {slug}")
+        except Exception as e:
+            logger.error(f"Linda-style generation failed for '{slug}': {e}")
+        finally:
+            _generating_linda.discard(slug)
 
 
 async def _generate_section_questions(slug: str) -> None:
@@ -148,6 +167,7 @@ async def topic_page(
     slug: str,
     background_tasks: BackgroundTasks,
     lang: str = "it",
+    style: str = "linda",
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -155,6 +175,8 @@ async def topic_page(
     generation and shows a polling skeleton — HTMX polls /topic/{slug}/content
     every 2s until the content appears.
     """
+    if style not in ("linda", "libro"):
+        style = "linda"
     topic = await db.scalar(select(Topic).where(Topic.slug == slug))
     if topic is None:
         raise HTTPException(status_code=404, detail="Topic not found")
@@ -166,6 +188,11 @@ async def topic_page(
     if topic.content_it is None and slug not in _generating:
         _generating.add(slug)
         background_tasks.add_task(_generate_and_cache, slug)
+
+    # Non-blocking: generate Linda-style content if missing
+    if topic.content_it is not None and topic.content_linda_it is None and slug not in _generating_linda:
+        _generating_linda.add(slug)
+        background_tasks.add_task(_generate_linda_and_cache, slug)
 
     # Non-blocking: generate section questions once content exists
     if topic.content_it is not None and slug not in _generating_sq:
@@ -207,6 +234,7 @@ async def topic_page(
             "wiki": wiki,
             "active_tab": "topics",
             "due_count": due_count,
+            "style": style,
             "section_questions": section_questions,
             "completion": completion,
         },

@@ -102,6 +102,77 @@ async def generate_explainer(title_it: str, title_en: str) -> tuple[str, str]:
     raise ValueError(f"Unexpected response format for '{title_it}'")
 
 
+LINDA_EXPLAINER_SYSTEM_PROMPT = """You are explaining a biology/chemistry/physics/logic topic to a smart Italian woman preparing for a healthcare entrance exam. She learns best from first-principles thinking — not from textbook summaries.
+
+YOUR STYLE:
+- Open with a hook: why should she care about this topic? What breaks without it? What puzzle does it solve?
+- Explain from the ground up, like a brilliant friend over coffee — trace the logic, don't just list facts
+- Use analogies and metaphors to make abstract concepts concrete
+- Connect ideas: "this matters because...", "without this, X couldn't happen..."
+- Build understanding layer by layer — each paragraph should make the next one click
+- Still be accurate and exam-relevant — she needs to pass the test
+- Write in flowing prose paragraphs, NOT bullet lists
+- Use ## headings for natural topic breaks, but NOT the rigid textbook structure (no "Definizione", "Struttura", etc.)
+- Keep it engaging — if a section feels boring to write, rewrite it until it's interesting
+- Include specific numbers and facts she needs to memorize, woven naturally into the explanation
+- End with what connects this topic to the bigger picture
+
+UNCERTAINTY RULES:
+- Wrap uncertain numerical values in [UNCERTAIN: ...] (e.g. [UNCERTAIN: ~180 g/mol])
+- Use for contested data or Italian curriculum-specific details
+- Do NOT mark well-established facts
+
+OUTPUT FORMAT — use these exact XML tags, nothing else before or after:
+<IT>
+[Italian markdown here — conversational, first-principles style]
+</IT>
+<EN>
+[English markdown here — same style]
+</EN>"""
+
+
+async def generate_linda_explainer(title_it: str, title_en: str) -> tuple[str, str]:
+    """
+    Generate Linda-style (first-principles, conversational) explainers.
+    Uses Sonnet for better prose quality.
+    Returns (content_linda_it, content_linda_en).
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY not set in environment")
+
+    client = AsyncAnthropic(api_key=api_key)
+    logger.info(f"Generating Linda-style explainer for: {title_it}")
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-5-20250514",
+        max_tokens=4096,
+        system=LINDA_EXPLAINER_SYSTEM_PROMPT,
+        messages=[{
+            "role": "user",
+            "content": f"Explain this topic: '{title_it}' (English: '{title_en}')."
+        }]
+    )
+
+    raw = response.content[0].text
+
+    # Strip markdown code fences if Claude wrapped the output
+    raw = re.sub(r'^```[a-z]*\n?', '', raw.strip(), flags=re.IGNORECASE)
+    raw = re.sub(r'\n?```$', '', raw.strip())
+
+    it_match = re.search(r'<IT>\s*(.*?)\s*(?:</IT>|<EN>)', raw, re.DOTALL | re.IGNORECASE)
+    en_match = re.search(r'<EN>\s*(.*?)\s*(?:</EN>|$)', raw, re.DOTALL | re.IGNORECASE)
+
+    if it_match and en_match:
+        content_it = it_match.group(1).strip()
+        content_en = en_match.group(1).strip()
+        if content_it and content_en:
+            return content_it, content_en
+
+    logger.error(f"Failed to parse Linda response for '{title_it}'. Raw[:300]: {raw[:300]}")
+    raise ValueError(f"Unexpected response format for Linda explainer '{title_it}'")
+
+
 QUIZ_EXPLANATION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso italiani (professioni sanitarie, osteopatia).
 
 Per una domanda a risposta multipla fornisci spiegazioni brevi e chiare IN ITALIANO.

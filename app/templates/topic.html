@@ -20,22 +20,54 @@
     {# IT | EN segmented control #}
     <div class="join flex-shrink-0">
       <button
+        id="btn-lang-it"
         class="join-item btn btn-sm min-h-[44px] {% if lang == 'it' %}btn-primary{% else %}btn-ghost{% endif %}"
         style="min-height: 44px;"
         hx-get="/topic/{{ topic.slug }}/content?lang=it"
         hx-target="#explainer-content"
         hx-swap="innerHTML"
-        onclick="localStorage.setItem('lang', 'it')">
+        hx-vals='js:{"style": localStorage.getItem("explainer_style") || "linda"}'
+        onclick="localStorage.setItem('lang', 'it'); updateLangButtons('it');">
         IT
       </button>
       <button
+        id="btn-lang-en"
         class="join-item btn btn-sm min-h-[44px] {% if lang == 'en' %}btn-primary{% else %}btn-ghost{% endif %}"
         style="min-height: 44px;"
         hx-get="/topic/{{ topic.slug }}/content?lang=en"
         hx-target="#explainer-content"
         hx-swap="innerHTML"
-        onclick="localStorage.setItem('lang', 'en')">
+        hx-vals='js:{"style": localStorage.getItem("explainer_style") || "linda"}'
+        onclick="localStorage.setItem('lang', 'en'); updateLangButtons('en');">
         EN
+      </button>
+    </div>
+  </div>
+
+  {# Style toggle: Linda / Libro #}
+  <div class="flex justify-center gap-2 mt-2">
+    <div class="join">
+      <button
+        id="btn-style-linda"
+        class="join-item btn btn-xs min-h-[36px] {% if style == 'linda' %}btn-secondary{% else %}btn-ghost{% endif %}"
+        style="min-height: 36px;"
+        hx-get="/topic/{{ topic.slug }}/content?style=linda"
+        hx-target="#explainer-content"
+        hx-swap="innerHTML"
+        hx-vals='js:{"lang": localStorage.getItem("lang") || "it"}'
+        onclick="localStorage.setItem('explainer_style', 'linda'); updateStyleButtons('linda');">
+        Linda
+      </button>
+      <button
+        id="btn-style-libro"
+        class="join-item btn btn-xs min-h-[36px] {% if style == 'libro' %}btn-secondary{% else %}btn-ghost{% endif %}"
+        style="min-height: 36px;"
+        hx-get="/topic/{{ topic.slug }}/content?style=libro"
+        hx-target="#explainer-content"
+        hx-swap="innerHTML"
+        hx-vals='js:{"lang": localStorage.getItem("lang") || "it"}'
+        onclick="localStorage.setItem('explainer_style', 'libro'); updateStyleButtons('libro');">
+        Libro
       </button>
     </div>
   </div>
@@ -64,7 +96,7 @@
 </div>
 {% endif %}
 
-{# Main content — HTMX swaps innerHTML on language toggle #}
+{# Main content — HTMX swaps innerHTML on language/style toggle #}
 <div id="explainer-content">
   {% include "fragments/explainer_content.html" %}
 </div>
@@ -90,5 +122,37 @@
 {% set drawer_id = "topic-chat" %}
 {% set chat_context = {"topic_slug": topic.slug} %}
 {% include "fragments/sticky_chat_drawer.html" %}
+
+<script>
+// On page load, apply stored style preference
+(function() {
+  var style = localStorage.getItem('explainer_style') || 'linda';
+  updateStyleButtons(style);
+})();
+
+function updateStyleButtons(style) {
+  var linda = document.getElementById('btn-style-linda');
+  var libro = document.getElementById('btn-style-libro');
+  if (style === 'linda') {
+    linda.classList.add('btn-secondary'); linda.classList.remove('btn-ghost');
+    libro.classList.remove('btn-secondary'); libro.classList.add('btn-ghost');
+  } else {
+    libro.classList.add('btn-secondary'); libro.classList.remove('btn-ghost');
+    linda.classList.remove('btn-secondary'); linda.classList.add('btn-ghost');
+  }
+}
+
+function updateLangButtons(lang) {
+  var it = document.getElementById('btn-lang-it');
+  var en = document.getElementById('btn-lang-en');
+  if (lang === 'it') {
+    it.classList.add('btn-primary'); it.classList.remove('btn-ghost');
+    en.classList.remove('btn-primary'); en.classList.add('btn-ghost');
+  } else {
+    en.classList.add('btn-primary'); en.classList.remove('btn-ghost');
+    it.classList.remove('btn-primary'); it.classList.add('btn-ghost');
+  }
+}
+</script>
 
 {% endblock %}
