@@ -103,29 +103,29 @@
 
 {# Quiz entry point #}
 <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid oklch(var(--b3));">
-  <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary w-full" style="min-height: 44px;">
+  <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary btn-sm" style="width: 100%; height: 40px; min-height: 40px; font-size: 0.875rem;">
     Quiz (5 domande)
   </a>
 </div>
 
 {# Bottom topic navigation #}
 <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid oklch(var(--b3));">
-  <div class="flex items-center justify-between gap-2">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
     {# Left: back to home #}
-    <a href="/" class="btn btn-outline btn-sm flex-shrink-0" style="min-height: 44px;">
+    <a href="/" class="btn btn-outline btn-sm" style="height: 36px; min-height: 36px; flex-shrink: 0; font-size: 0.8125rem;">
       ← Indietro
     </a>
 
     {# Center/Right: prev/next topic in same subject #}
-    <div class="flex items-center gap-2">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
       {% if prev_topic %}
-      <a href="/topic/{{ prev_topic.slug }}" class="btn btn-outline btn-sm" style="min-height: 44px; max-width: 160px;">
-        <span class="truncate">← {{ prev_topic.title_it[:20] }}{% if prev_topic.title_it|length > 20 %}…{% endif %}</span>
+      <a href="/topic/{{ prev_topic.slug }}" class="btn btn-outline btn-sm" style="height: 36px; min-height: 36px; max-width: 160px; font-size: 0.8125rem;">
+        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">← {{ prev_topic.title_it[:20] }}{% if prev_topic.title_it|length > 20 %}…{% endif %}</span>
       </a>
       {% endif %}
       {% if next_topic %}
-      <a href="/topic/{{ next_topic.slug }}" class="btn btn-outline btn-primary btn-sm" style="min-height: 44px; max-width: 160px;">
-        <span class="truncate">{{ next_topic.title_it[:20] }}{% if next_topic.title_it|length > 20 %}…{% endif %} →</span>
+      <a href="/topic/{{ next_topic.slug }}" class="btn btn-outline btn-primary btn-sm" style="height: 36px; min-height: 36px; max-width: 160px; font-size: 0.8125rem;">
+        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ next_topic.title_it[:20] }}{% if next_topic.title_it|length > 20 %}…{% endif %} →</span>
       </a>
       {% endif %}
     </div>
@@ -136,8 +136,8 @@
 <div style="margin-top: 1rem;">
   <button
     onclick="openChatDrawer('topic-chat')"
-    class="btn btn-outline btn-sm w-full"
-    style="min-height: 44px;">
+    class="btn btn-outline btn-sm"
+    style="width: 100%; height: 36px; min-height: 36px; font-size: 0.8125rem;">
     Chiedi a Claude
   </button>
 </div>
