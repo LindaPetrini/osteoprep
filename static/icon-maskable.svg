@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#d4608a"/>
+  <!-- Stylized vertebra / bone — scaled to 80% safe zone (51-461) -->
+  <g fill="white" transform="translate(256,256) scale(0.7) translate(-256,-256)">
+    <!-- Central vertebral body -->
+    <ellipse cx="256" cy="256" rx="65" ry="55"/>
+    <!-- Spinous process (top) -->
+    <rect x="248" y="130" width="16" height="80" rx="8"/>
+    <!-- Transverse processes (left + right) -->
+    <rect x="148" y="248" width="70" height="16" rx="8"/>
+    <rect x="294" y="248" width="70" height="16" rx="8"/>
+    <!-- Pedicles (diagonal struts) -->
+    <rect x="248" y="310" width="16" height="72" rx="8" transform="rotate(-15 256 346)"/>
+    <rect x="248" y="310" width="16" height="72" rx="8" transform="rotate(15 256 346)"/>
+    <!-- Spinal canal (pink cutout) -->
+    <ellipse cx="256" cy="240" rx="20" ry="18" fill="#d4608a"/>
+  </g>
+</svg>

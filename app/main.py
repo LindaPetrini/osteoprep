@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
@@ -68,6 +69,24 @@ app.include_router(exam.router)
 app.include_router(progress.router)
 app.include_router(chat.router)
 app.include_router(section_quiz.router)
+
+# Service worker must be served from root scope
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse("static/sw.js", media_type="application/javascript",
+                        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"})
+
+
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse("static/manifest.json", media_type="application/manifest+json")
+
+
+@app.get("/.well-known/assetlinks.json")
+async def assetlinks():
+    return FileResponse("static/assetlinks.json", media_type="application/json",
+                        headers={"Access-Control-Allow-Origin": "*"})
+
 
 # Expose templates on app.state for access from other modules if needed
 app.state.templates = templates
