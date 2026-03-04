@@ -160,12 +160,20 @@ async def generate_linda_explainer(title_it: str, title_en: str) -> tuple[str, s
     raw = re.sub(r'^```[a-z]*\n?', '', raw.strip(), flags=re.IGNORECASE)
     raw = re.sub(r'\n?```$', '', raw.strip())
 
+    # Try strict match first, then fallback for truncated responses
     it_match = re.search(r'<IT>\s*(.*?)\s*(?:</IT>|<EN>)', raw, re.DOTALL | re.IGNORECASE)
     en_match = re.search(r'<EN>\s*(.*?)\s*(?:</EN>|$)', raw, re.DOTALL | re.IGNORECASE)
+
+    # Fallback: if IT block is truncated (no </IT> before <EN>), grab everything between tags
+    if not it_match:
+        it_match = re.search(r'<IT>\s*(.*)', raw, re.DOTALL | re.IGNORECASE)
 
     if it_match and en_match:
         content_it = it_match.group(1).strip()
         content_en = en_match.group(1).strip()
+        # Clean up any trailing </IT> or <EN> that leaked into IT content
+        content_it = re.sub(r'\s*</IT>\s*$', '', content_it, flags=re.IGNORECASE)
+        content_it = re.sub(r'\s*<EN>.*$', '', content_it, flags=re.DOTALL | re.IGNORECASE)
         if content_it and content_en:
             return content_it, content_en
 
