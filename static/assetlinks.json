@@ -4,7 +4,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.lindapetrini.osteoprep",
-      "sha256_cert_fingerprints": ["TODO:FILL_AFTER_KEYSTORE_GENERATION"]
+      "sha256_cert_fingerprints": ["93:23:C4:03:80:DA:7D:9C:F7:74:57:84:43:6B:0A:AE:2B:56:25:8A:47:FA:4A:CC:28:22:D4:86:E3:A4:12:93"]
     }
   }
 ]
