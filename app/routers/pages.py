@@ -225,6 +225,21 @@ async def topic_page(
 
     completion = await get_topic_completion(db, slug)
     due_count = await fsrs_service.get_due_count(db)
+
+    # Fetch previous and next topics in the same subject for navigation
+    prev_topic = await db.scalar(
+        select(Topic)
+        .where(Topic.subject == topic.subject, Topic.order_in_subject < topic.order_in_subject)
+        .order_by(Topic.order_in_subject.desc())
+        .limit(1)
+    )
+    next_topic = await db.scalar(
+        select(Topic)
+        .where(Topic.subject == topic.subject, Topic.order_in_subject > topic.order_in_subject)
+        .order_by(Topic.order_in_subject.asc())
+        .limit(1)
+    )
+
     return templates.TemplateResponse(
         request=request,
         name="topic.html",
@@ -237,5 +252,7 @@ async def topic_page(
             "style": style,
             "section_questions": section_questions,
             "completion": completion,
+            "prev_topic": prev_topic,
+            "next_topic": next_topic,
         },
     )

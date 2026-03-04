@@ -72,8 +72,10 @@
          hx-get="/subjects/{{ subject }}/topics"
          hx-trigger="revealed"
          hx-swap="innerHTML">
-      <div class="flex justify-center py-4">
-        <span class="loading loading-spinner loading-sm text-primary"></span>
+      <div class="px-4 py-3 space-y-2">
+        <div class="skeleton h-12 w-full rounded-lg"></div>
+        <div class="skeleton h-12 w-full rounded-lg"></div>
+        <div class="skeleton h-12 w-full rounded-lg"></div>
       </div>
     </div>
   </div>

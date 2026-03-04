@@ -2,6 +2,14 @@
 {% block title %}Risultati simulazione - OsteoPrep{% endblock %}
 
 {% block content %}
+{% if score >= (max_score * 0.8)|int %}
+<div class="confetti-container">
+  {% set confetti_colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#00bcd4', '#4caf50', '#ffeb3b', '#ff9800', '#ff5722', '#8bc34a', '#cddc39', '#ffc107', '#03a9f4', '#e040fb'] %}
+  {% for i in range(18) %}
+  <div class="confetti-piece" style="left: {{ (i * 5.5 + 1.5) }}%; background: {{ confetti_colors[i % confetti_colors|length] }}; animation-delay: {{ (i * 0.12) }}s; width: {{ [8, 10, 12, 7, 11, 9][i % 6] }}px; height: {{ [8, 10, 6, 12, 7, 11][i % 6] }}px;"></div>
+  {% endfor %}
+</div>
+{% endif %}
 <div style="padding-top: 1rem;">
   <h1 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Risultati simulazione</h1>
   {% if time_expired %}

@@ -102,10 +102,34 @@
 </div>
 
 {# Quiz entry point #}
-<div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+<div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid oklch(var(--b3));">
   <a href="/topic/{{ topic.slug }}/quiz" class="btn btn-primary w-full" style="min-height: 44px;">
     Quiz (5 domande)
   </a>
+</div>
+
+{# Bottom topic navigation #}
+<div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid oklch(var(--b3));">
+  <div class="flex items-center justify-between gap-2">
+    {# Left: back to home #}
+    <a href="/" class="btn btn-outline btn-sm flex-shrink-0" style="min-height: 44px;">
+      ← Indietro
+    </a>
+
+    {# Center/Right: prev/next topic in same subject #}
+    <div class="flex items-center gap-2">
+      {% if prev_topic %}
+      <a href="/topic/{{ prev_topic.slug }}" class="btn btn-outline btn-sm" style="min-height: 44px; max-width: 160px;">
+        <span class="truncate">← {{ prev_topic.title_it[:20] }}{% if prev_topic.title_it|length > 20 %}…{% endif %}</span>
+      </a>
+      {% endif %}
+      {% if next_topic %}
+      <a href="/topic/{{ next_topic.slug }}" class="btn btn-outline btn-primary btn-sm" style="min-height: 44px; max-width: 160px;">
+        <span class="truncate">{{ next_topic.title_it[:20] }}{% if next_topic.title_it|length > 20 %}…{% endif %} →</span>
+      </a>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
 {# "Chiedi a Claude" button — opens sticky bottom drawer #}
@@ -129,6 +153,26 @@
   var style = localStorage.getItem('explainer_style') || 'linda';
   updateStyleButtons(style);
 })();
+
+// Show skeleton placeholders when switching language/style
+var skeletonHTML = '<div class="py-6"><div class="space-y-4">' +
+  '<div class="skeleton h-6 w-3/4"></div>' +
+  '<div class="skeleton h-4 w-full"></div>' +
+  '<div class="skeleton h-4 w-full"></div>' +
+  '<div class="skeleton h-4 w-5/6"></div>' +
+  '<div class="skeleton h-6 w-2/3 mt-6"></div>' +
+  '<div class="skeleton h-4 w-full"></div>' +
+  '<div class="skeleton h-4 w-4/5"></div>' +
+  '<div class="skeleton h-6 w-1/2 mt-6"></div>' +
+  '<div class="skeleton h-4 w-full"></div>' +
+  '<div class="skeleton h-4 w-3/4"></div>' +
+  '</div></div>';
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+  var target = evt.detail.target || evt.detail.elt;
+  if (target && target.id === 'explainer-content') {
+    target.innerHTML = skeletonHTML;
+  }
+});
 
 function updateStyleButtons(style) {
   var linda = document.getElementById('btn-style-linda');
