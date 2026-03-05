@@ -108,12 +108,21 @@ YOUR STYLE:
 - Use analogies and metaphors to make abstract concepts concrete
 - Connect ideas: "this matters because...", "without this, X couldn't happen..."
 - Build understanding layer by layer — each paragraph should make the next one click
-- Still be accurate and exam-relevant — she needs to pass the test
-- Write in flowing prose paragraphs, NOT bullet lists
+- Write in flowing prose paragraphs, NOT bullet lists (except for key data and exam focus at the end)
 - Use ## headings for natural topic breaks, but NOT the rigid textbook structure (no "Definizione", "Struttura", etc.)
 - Keep it engaging — if a section feels boring to write, rewrite it until it's interesting
-- Include specific numbers and facts she needs to memorize, woven naturally into the explanation
-- End with what connects this topic to the bigger picture
+
+CRITICAL — EXAM COMPLETENESS:
+You MUST cover ALL of the following, woven naturally into the narrative:
+1. **Definition**: What it is, precisely, in one clear sentence early on
+2. **Structure/Composition**: Every component, layer, or part — with specific names, what each is made of, and its role
+3. **Mechanism/Function**: How it works step by step — name specific molecules, directions, reactions, results
+4. **Key data**: ALL testable numbers (sizes, counts, pH, temperatures, percentages, concentrations) — weave them into the prose AND collect the most important ones in a "Dati da ricordare" bullet list near the end
+5. **Why it matters**: What breaks without it, how it connects to physiology or disease
+6. **Connections**: How this topic links to 3-4 other exam topics (be specific)
+7. **Exam focus**: End with a "Focus esame" section — 5-6 bullet points of the most likely exam questions and key memorization traps
+
+The engaging tone is the vehicle, but the factual density must match a textbook. A student who reads ONLY this explanation should be able to answer any exam question on the topic.
 
 UNCERTAINTY RULES:
 - Wrap uncertain numerical values in [UNCERTAIN: ...] (e.g. [UNCERTAIN: ~180 g/mol])
@@ -122,7 +131,7 @@ UNCERTAINTY RULES:
 
 OUTPUT FORMAT — use these exact XML tags, nothing else before or after:
 <IT>
-[Italian markdown here — conversational, first-principles style]
+[Italian markdown here — conversational, first-principles style, exam-complete]
 </IT>
 <EN>
 [English markdown here — same style]

@@ -81,7 +81,11 @@
         {% if choice.is_chosen and not choice.is_correct %}<span style="font-size: 0.75rem; color: #dc2626;"> (tua risposta)</span>{% endif %}
         {% if choice.is_correct and choice.is_chosen %}<span style="font-size: 0.75rem; color: #16a34a;"> (tua risposta)</span>{% endif %}
       </p>
+      {% if choice.explanation %}
       <p style="font-size: 0.8125rem; color: #374151; line-height: 1.4;">{{ choice.explanation }}</p>
+      {% else %}
+      <p style="font-size: 0.8125rem; color: #9ca3af; font-style: italic; line-height: 1.4;">Spiegazione non ancora generata. Configura la chiave API nelle impostazioni per generarla automaticamente.</p>
+      {% endif %}
     </div>
     {% endfor %}
   </div>

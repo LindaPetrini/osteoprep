@@ -37,9 +37,9 @@ async def _prefetch_explanations(question_ids: list[int], api_key: str | None = 
             q = await bg_db.get(QuizQuestion, qid)
             if q and q.explanation_json is None:
                 try:
-                    choices = __json.loads(q.choices_json)
+                    choices = _json.loads(q.choices_json)
                     exp = await generate_quiz_explanation(q.question_it, choices, q.correct_index, api_key=api_key)
-                    q.explanation_json = __json.dumps(exp, ensure_ascii=False)
+                    q.explanation_json = _json.dumps(exp, ensure_ascii=False)
                     q.generated_at = datetime.now(timezone.utc)
                     await bg_db.commit()
                 except Exception as e:

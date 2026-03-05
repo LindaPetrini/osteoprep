@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import httpx
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
@@ -39,7 +39,7 @@ async def _generate_and_cache(slug: str, api_key: str | None = None) -> None:
             content_it, content_en = await generate_explainer(topic.title_it, topic.title_en, api_key=api_key)
             topic.content_it = content_it
             topic.content_en = content_en
-            topic.generated_at = datetime.utcnow()
+            topic.generated_at = datetime.now(timezone.utc)
             await db.commit()
             logger.info(f"Background generation complete: {slug}")
         except Exception as e:
