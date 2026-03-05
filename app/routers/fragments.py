@@ -103,12 +103,19 @@ async def topic_content_fragment(
         for sq in sq_result.scalars().all()
     }
 
-    # Fetch section images for inline figures
+    # Fetch section images matched to section headings
     from app.routers.pages import _get_section_images
+    from app.templates_config import split_sections
     try:
-        section_images = await _get_section_images(topic.title_en)
+        active_content = (
+            (topic.content_linda_it if lang == "it" else topic.content_linda_en)
+            if style == "linda"
+            else (topic.content_it if lang == "it" else topic.content_en)
+        )
+        headings = [s["heading"] for s in split_sections(active_content or "")]
+        section_images = await _get_section_images(topic.title_en, headings)
     except Exception:
-        section_images = []
+        section_images = {}
 
     return templates.TemplateResponse(
         request=request,

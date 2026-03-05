@@ -130,52 +130,141 @@ async def _get_wikipedia_info(title_en: str) -> dict | None:
     return None
 
 
-async def _get_section_images(title_en: str, max_images: int = 6) -> list[dict]:
-    """Fetch multiple Wikipedia images related to a topic via search API.
+def _extract_search_keyword(heading: str) -> str | None:
+    """Extract a searchable biology keyword from an Italian section heading.
 
-    Returns a list of {"src": url, "alt": title} dicts for inline section figures.
-    Skips the first result (usually same as hero image) and filters out .tif files.
+    Strips Italian articles, takes the part before ':' (the concept, not the
+    metaphor), and filters out meta-section headings.
     """
-    images: list[dict] = []
-    try:
-        async with httpx.AsyncClient(timeout=4.0) as client:
+    import re as _re
+
+    _skip_patterns = {
+        "dati da ricordare", "focus esame", "connessioni con altri argomenti",
+        "come funziona tutto insieme", "riepilogo", "riassunto",
+        "cosa succede senza", "come funziona", "perch",
+    }
+
+    lower = heading.lower().strip()
+    for skip in _skip_patterns:
+        if lower.startswith(skip):
+            return None
+
+    # Take part before colon (the concept, not the metaphor)
+    key = heading.split(":")[0].strip()
+    # Strip Italian articles: Il, La, Le, I, Lo, Gli, L', L + space
+    key = _re.sub(r"^(Il|La|Le|I|Lo|Gli|L['\u2019 ])\s*", "", key, flags=_re.IGNORECASE).strip()
+    # Strip leading "Perche/Perché (la/il/...)"
+    key = _re.sub(r"^Perch[eé]\s+", "", key, flags=_re.IGNORECASE).strip()
+    key = _re.sub(r"^(il|la|le|i|lo|gli|l['\u2019 ])\s*", "", key, flags=_re.IGNORECASE).strip()
+
+    # Skip if too short or too generic
+    if len(key) < 4:
+        return None
+    return key
+
+
+async def _get_section_images(
+    title_en: str, section_headings: list[str] | None = None
+) -> dict[int, dict]:
+    """Fetch Wikimedia Commons images matched to specific section headings.
+
+    Extracts the biology keyword from each Italian heading, searches Commons
+    in parallel, and returns a dict mapping section index → {"src", "alt"}.
+    """
+    import asyncio
+
+    if not section_headings:
+        return {}
+
+    async def _fetch_one(client: httpx.AsyncClient, keyword: str) -> dict | None:
+        """Find the best image for a biology keyword via Italian Wikipedia."""
+        import re as _re
+
+        # Words that indicate a biology/science article
+        _bio_hints = {
+            "cell", "cellu", "organi", "biolog", "chimic", "molecol",
+            "protein", "enzim", "membran", "nucle", "cromoso", "gene",
+            "mitocond", "ribosom", "citoplas", "metabol", "osmosi",
+            "fotosintet", "respira", "aminoacid", "lipid", "DNA", "RNA",
+            "divisione", "replicaz", "sintesi", "tessut", "anatomia",
+        }
+
+        def _is_biology(data: dict) -> bool:
+            """Check if article description/extract suggests biology content."""
+            text = (data.get("description", "") + " " + data.get("extract", "")).lower()
+            return any(hint in text for hint in _bio_hints)
+
+        async def _try_rest(term: str, require_bio: bool = False) -> dict | None:
+            """Direct article lookup — fast, returns curated main image."""
+            slug = term.replace(" ", "_")
             r = await client.get(
-                "https://en.wikipedia.org/w/api.php",
-                params={
-                    "action": "query",
-                    "generator": "search",
-                    "gsrsearch": title_en,
-                    "gsrlimit": str(max_images + 6),
-                    "prop": "pageimages|info",
-                    "piprop": "thumbnail",
-                    "pithumbsize": "400",
-                    "format": "json",
-                    "formatversion": "2",
-                },
+                f"https://it.wikipedia.org/api/rest_v1/page/summary/{slug}",
                 headers={"User-Agent": "OsteoPrep/1.0"},
             )
             if r.status_code != 200:
-                return []
+                return None
             data = r.json()
-            pages = data.get("query", {}).get("pages", [])
-            for i, page in enumerate(pages):
-                if i == 0:
-                    continue  # skip first result — usually same as hero image
-                thumb = page.get("thumbnail", {}).get("source")
-                if not thumb:
-                    continue
-                # Skip .tif files — browsers can't display them
-                if ".tif" in thumb.lower():
-                    continue
-                images.append({
-                    "src": thumb,
-                    "alt": page.get("title", ""),
-                })
-                if len(images) >= max_images:
-                    break
-    except Exception:
-        pass
-    return images
+            thumb = data.get("thumbnail", {}).get("source")
+            if not thumb or ".tif" in thumb.lower():
+                return None
+            if require_bio and not _is_biology(data):
+                return None
+            thumb = _re.sub(r"/\d+px-", "/400px-", thumb)
+            return {"src": thumb, "alt": data.get("title", "")}
+
+        def _singular_variants(kw: str) -> list[str]:
+            """Generate Italian singular forms for common biology plurals."""
+            variants = []
+            # Handle "X e Y" compounds — try each part as singular
+            if " e " in kw:
+                parts = [p.strip() for p in kw.split(" e ", 1)]
+                for p in parts:
+                    for s in _singular_variants(p):
+                        variants.append(s)
+                return variants
+            # Common Italian plural→singular rules for biology
+            if kw.endswith("i"):
+                variants.append(kw[:-1] + "o")   # mitocondri → mitocondrio
+                variants.append(kw[:-1] + "a")   # lisosomi → lisosoma
+                variants.append(kw[:-1] + "e")   # gradienti → gradiente
+            return variants
+
+        try:
+            # Try disambiguated forms first (always biology), then plain keyword with bio check
+            for term in [f"{keyword} (biologia)", f"{keyword} cellulare"]:
+                result = await _try_rest(term)
+                if result:
+                    return result
+            # Try plain keyword + singular variants, but require biology content
+            for term in [keyword, *_singular_variants(keyword)]:
+                result = await _try_rest(term, require_bio=True)
+                if result:
+                    return result
+            return None
+        except Exception:
+            return None
+
+    result: dict[int, dict] = {}
+    async with httpx.AsyncClient(timeout=4.0) as client:
+        tasks = []
+        indices = []
+        for i, heading in enumerate(section_headings):
+            if not heading:  # intro section
+                continue
+            keyword = _extract_search_keyword(heading)
+            if not keyword:
+                continue
+            tasks.append(_fetch_one(client, keyword))
+            indices.append(i)
+
+        images = await asyncio.gather(*tasks, return_exceptions=True)
+        seen_srcs: set[str] = set()
+        for idx, img in zip(indices, images):
+            if isinstance(img, dict) and img.get("src") and img["src"] not in seen_srcs:
+                seen_srcs.add(img["src"])
+                result[idx] = img
+
+    return result
 
 
 @router.get("/privacy", response_class=HTMLResponse)
@@ -296,9 +385,17 @@ async def topic_page(
     }
 
     # Wikipedia image + section figures (optional, never blocks the page)
-    wiki, section_images = await _get_wikipedia_info(topic.title_en), []
+    wiki, section_images = await _get_wikipedia_info(topic.title_en), {}
     try:
-        section_images = await _get_section_images(topic.title_en)
+        # Extract section headings from the active content for targeted image search
+        from app.templates_config import split_sections
+        active_content = (
+            (topic.content_linda_it if lang == "it" else topic.content_linda_en)
+            if style == "linda"
+            else (topic.content_it if lang == "it" else topic.content_en)
+        )
+        headings = [s["heading"] for s in split_sections(active_content or "")]
+        section_images = await _get_section_images(topic.title_en, headings)
     except Exception:
         pass
 

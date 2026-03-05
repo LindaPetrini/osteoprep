@@ -6,7 +6,7 @@
   {% set content = topic.content_it if lang == "it" else topic.content_en %}
 {% endif %}
 {% set sq_map = section_questions if section_questions is defined else {} %}
-{% set imgs = section_images if section_images is defined else [] %}
+{% set imgs = section_images if section_images is defined else {} %}
 
 {% if content %}
 
@@ -25,18 +25,16 @@
       {{ section.heading }}
     </div>
     <div class="collapse-content">
-      {# Inline figure for this section #}
-      {% if imgs and loop.index0 > 0 and loop.index0 % 2 == 0 %}
-      {% set img_idx = (loop.index0 // 2) - 1 %}
-      {% if img_idx >= 0 and img_idx < imgs | length %}
+      {# Inline figure matched to this section's heading #}
+      {% if loop.index0 in imgs %}
+      {% set sec_img = imgs[loop.index0] %}
       <figure style="margin: 0 0 0.75rem; text-align: center;">
-        <img src="{{ imgs[img_idx].src }}" alt="{{ imgs[img_idx].alt }}"
+        <img src="{{ sec_img.src }}" alt="{{ sec_img.alt }}"
              loading="lazy"
              onerror="this.parentElement.style.display='none'"
              style="width: 100%; max-height: 240px; object-fit: cover; border-radius: 0.75rem; border: 1px solid oklch(var(--b3));">
-        <figcaption style="font-size: 0.6875rem; color: oklch(var(--bc)/0.45); margin-top: 0.25rem;">{{ imgs[img_idx].alt }}</figcaption>
+        <figcaption style="font-size: 0.6875rem; color: oklch(var(--bc)/0.45); margin-top: 0.25rem;">{{ sec_img.alt }}</figcaption>
       </figure>
-      {% endif %}
       {% endif %}
       <div class="prose max-w-none text-base-content leading-relaxed
                   prose-headings:text-base-content prose-headings:font-bold
