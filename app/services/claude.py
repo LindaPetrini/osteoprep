@@ -109,7 +109,7 @@ YOUR STYLE:
 - Connect ideas: "this matters because...", "without this, X couldn't happen..."
 - Build understanding layer by layer — each paragraph should make the next one click
 - Write in flowing prose paragraphs, NOT bullet lists (except for key data and exam focus at the end)
-- Use ## headings for natural topic breaks, but NOT the rigid textbook structure (no "Definizione", "Struttura", etc.)
+- Use the SAME ## headings as the textbook version: "Definizione", "Struttura / Composizione", "Meccanismo / Funzione", "Dati chiave", "Perché è importante", "Connessioni agli altri argomenti", "Focus esame" — adapt titles as needed (e.g. "Reazione" instead of "Meccanismo" for chemistry)
 - Keep it engaging — if a section feels boring to write, rewrite it until it's interesting
 
 CRITICAL — EXAM COMPLETENESS:

@@ -10,10 +10,12 @@
 
 {% if content %}
 
-{% if current_style == "libro" %}
-{# Libro (textbook) style: collapsible sections with micro-questions #}
 {% set sections = content | split_sections %}
 {% if sections | length > 1 %}
+{# For Linda style, distribute questions across sections since headings differ from libro slugs #}
+{% if current_style == "linda" %}
+  {% set q_dist = distribute_questions(sq_map, sections | length) %}
+{% endif %}
 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
   {% for section in sections %}
   {% if section.heading %}
@@ -42,33 +44,62 @@
            style="font-size: 1rem;">
         {{ section.body | render_content | safe }}
       </div>
-      {# Inline section micro-questions — only for libro style #}
-      {% set sq = sq_map.get(section.slug) %}
-      {% if sq %}
-      {% set sq_questions = sq.questions_json | fromjson if sq.questions_json else [{"question_it": sq.question_it, "choices": sq.choices_json | fromjson, "correct_index": sq.correct_index}] %}
-      {% for q_data in sq_questions %}
-      <div id="sq-{{ sq.id }}-q{{ loop.index0 }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
-        <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          Verifica rapida {{ loop.index }}/{{ sq_questions | length }}
-        </p>
-        <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
-        <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}?q_index={{ loop.index0 }}"
-              hx-target="#sq-{{ sq.id }}-q{{ loop.index0 }}"
-              hx-swap="outerHTML">
-          {% set shuffled = shuffle_choices(q_data.choices) %}
-          {% for orig_idx, choice in shuffled %}
-          <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
-            <input type="radio" name="answer" value="{{ orig_idx }}"
-                   class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
-            <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
-          </label>
-          {% endfor %}
-          <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
-            Controlla
-          </button>
-        </form>
-      </div>
-      {% endfor %}
+
+      {# Micro-questions: libro matches by slug, linda distributes evenly #}
+      {% if current_style == "libro" %}
+        {% set sq = sq_map.get(section.slug) %}
+        {% if sq %}
+        {% set sq_questions = sq.questions_json | fromjson if sq.questions_json else [{"question_it": sq.question_it, "choices": sq.choices_json | fromjson, "correct_index": sq.correct_index}] %}
+        {% for q_data in sq_questions %}
+        <div id="sq-{{ sq.id }}-q{{ loop.index0 }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
+          <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Verifica rapida {{ loop.index }}/{{ sq_questions | length }}
+          </p>
+          <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
+          <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq.id }}?q_index={{ loop.index0 }}"
+                hx-target="#sq-{{ sq.id }}-q{{ loop.index0 }}"
+                hx-swap="outerHTML">
+            {% set shuffled = shuffle_choices(q_data.choices) %}
+            {% for orig_idx, choice in shuffled %}
+            <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
+              <input type="radio" name="answer" value="{{ orig_idx }}"
+                     class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
+              <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
+            </label>
+            {% endfor %}
+            <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
+              Controlla
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+        {% endif %}
+      {% else %}
+        {# Linda: distributed questions #}
+        {% set section_qs = q_dist.get(loop.index0, []) %}
+        {% for sq_id, q_idx, q_data in section_qs %}
+        <div id="sq-{{ sq_id }}-q{{ q_idx }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
+          <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Verifica rapida
+          </p>
+          <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
+          <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq_id }}?q_index={{ q_idx }}"
+                hx-target="#sq-{{ sq_id }}-q{{ q_idx }}"
+                hx-swap="outerHTML">
+            {% set shuffled = shuffle_choices(q_data.choices) %}
+            {% for orig_idx, choice in shuffled %}
+            <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
+              <input type="radio" name="answer" value="{{ orig_idx }}"
+                     class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
+              <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
+            </label>
+            {% endfor %}
+            <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
+              Controlla
+            </button>
+          </form>
+        </div>
+        {% endfor %}
       {% endif %}
     </div>
   </div>
@@ -93,67 +124,6 @@
      style="font-size: 1rem;">
   {{ content | render_content | safe }}
 </div>
-{% endif %}
-
-{% else %}
-{# Linda style: split by ## headings, interleave micro-questions after each section #}
-{% set linda_sections = content | split_sections %}
-{% set q_dist = distribute_questions(sq_map, linda_sections | length) %}
-{% set img_interval = (linda_sections | length // (imgs | length + 1)) if imgs else 999 %}
-
-{% for section in linda_sections %}
-<div style="{% if not loop.first %}margin-top: 1.5rem;{% endif %}">
-  {% if section.heading %}
-  <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid oklch(var(--b3));">{{ section.heading }}</h2>
-  {% endif %}
-  <div class="prose max-w-none text-base-content leading-relaxed
-              prose-headings:text-base-content prose-headings:font-bold
-              prose-li:my-0.5 prose-ul:my-1 prose-ol:my-1"
-       style="font-size: 1rem;">
-    {{ section.body | render_content | safe }}
-  </div>
-
-  {# Inline figure — show one image every ~2 sections #}
-  {% if imgs and loop.index0 > 0 and loop.index0 % 2 == 1 %}
-  {% set img_idx = (loop.index0 // 2) %}
-  {% if img_idx < imgs | length %}
-  <figure style="margin: 1rem 0 0.5rem; text-align: center;">
-    <img src="{{ imgs[img_idx].src }}" alt="{{ imgs[img_idx].alt }}"
-         loading="lazy"
-         onerror="this.parentElement.style.display='none'"
-         style="width: 100%; max-height: 240px; object-fit: cover; border-radius: 0.75rem; border: 1px solid oklch(var(--b3));">
-    <figcaption style="font-size: 0.6875rem; color: oklch(var(--bc)/0.45); margin-top: 0.25rem;">{{ imgs[img_idx].alt }}</figcaption>
-  </figure>
-  {% endif %}
-  {% endif %}
-
-  {# Interleaved micro-questions for this section #}
-  {% set section_qs = q_dist.get(loop.index0, []) %}
-  {% for sq_id, q_idx, q_data in section_qs %}
-  <div id="sq-{{ sq_id }}-q{{ q_idx }}" class="card bg-base-200 border border-base-300" style="margin-top: 0.75rem; padding: 1rem;">
-    <p style="font-size: 0.8125rem; font-weight: 600; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-      Verifica rapida
-    </p>
-    <p style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.9375rem;">{{ q_data.question_it }}</p>
-    <form hx-post="/topic/{{ topic.slug }}/section-check/{{ sq_id }}?q_index={{ q_idx }}"
-          hx-target="#sq-{{ sq_id }}-q{{ q_idx }}"
-          hx-swap="outerHTML">
-      {% set shuffled = shuffle_choices(q_data.choices) %}
-      {% for orig_idx, choice in shuffled %}
-      <label style="display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.375rem 0; cursor: pointer; min-height: 40px;">
-        <input type="radio" name="answer" value="{{ orig_idx }}"
-               class="radio radio-primary radio-sm" style="margin-top: 0.125rem; flex-shrink: 0;" required>
-        <span style="font-size: 0.875rem; line-height: 1.4;">{{ choice }}</span>
-      </label>
-      {% endfor %}
-      <button type="submit" class="btn btn-sm btn-outline w-full" style="margin-top: 0.5rem; min-height: 40px;">
-        Controlla
-      </button>
-    </form>
-  </div>
-  {% endfor %}
-</div>
-{% endfor %}
 {% endif %}
 
 {% else %}
