@@ -1,5 +1,5 @@
-const CACHE_NAME = 'osteoprep-v1';
-const STATIC_CACHE = 'osteoprep-static-v1';
+const CACHE_NAME = 'osteoprep-v2';
+const STATIC_CACHE = 'osteoprep-static-v2';
 
 const PRECACHE_URLS = [
   '/',

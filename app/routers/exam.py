@@ -207,6 +207,9 @@ async def exam_submit(request: Request, db: AsyncSession = Depends(get_db)):
             score += 1
 
         choices = json.loads(q.choices_json)
+        if chosen is not None and (chosen < 0 or chosen >= len(choices)):
+            chosen = None
+            is_correct = False
 
         # Generate-once-cache explanation
         if q.explanation_json is None:
@@ -226,7 +229,16 @@ async def exam_submit(request: Request, db: AsyncSession = Depends(get_db)):
                     "wrong_2": "Spiegazione non disponibile.",
                 }
         else:
-            explanation = json.loads(q.explanation_json)
+            try:
+                explanation = json.loads(q.explanation_json)
+            except (json.JSONDecodeError, TypeError):
+                logger.warning(f"Invalid cached exam explanation JSON for question {qid}")
+                explanation = {
+                    "correct": "Spiegazione non disponibile.",
+                    "wrong_0": "Spiegazione non disponibile.",
+                    "wrong_1": "Spiegazione non disponibile.",
+                    "wrong_2": "Spiegazione non disponibile.",
+                }
 
         # Map explanations to choices
         wrong_idx = 0

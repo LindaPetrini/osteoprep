@@ -155,11 +155,13 @@ async def _build_results_data(
         q = questions.get(qid)
         if q is None:
             continue
+
+        choices = _json.loads(q.choices_json)
+        if chosen < 0 or chosen >= len(choices):
+            chosen = None
         is_correct = chosen == q.correct_index
         if is_correct:
             score += 1
-
-        choices = _json.loads(q.choices_json)
 
         # Generate-once-cache: only call Claude if explanation_json is NULL
         if q.explanation_json is None:
@@ -179,7 +181,16 @@ async def _build_results_data(
                     "wrong_2": "Spiegazione non disponibile.",
                 }
         else:
-            explanation = _json.loads(q.explanation_json)
+            try:
+                explanation = _json.loads(q.explanation_json)
+            except (_json.JSONDecodeError, TypeError):
+                logger.warning(f"Invalid cached explanation JSON for quiz question {qid}")
+                explanation = {
+                    "correct": "Spiegazione non disponibile.",
+                    "wrong_0": "Spiegazione non disponibile.",
+                    "wrong_1": "Spiegazione non disponibile.",
+                    "wrong_2": "Spiegazione non disponibile.",
+                }
 
         wrong_idx = 0
         per_choice_explanations = []
@@ -205,6 +216,7 @@ async def _build_results_data(
             "chosen_index": chosen,
             "correct_index": q.correct_index,
             "is_correct": is_correct,
+            "skipped": chosen is None,
             "choices": per_choice_explanations,
         })
 
@@ -241,17 +253,24 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
 
     question_ids = list(submitted.keys())
     result = await db.execute(
-        select(QuizQuestion).where(QuizQuestion.id.in_(question_ids))
+        select(QuizQuestion)
+        .where(QuizQuestion.id.in_(question_ids))
+        .where(QuizQuestion.topic_slug == slug)
     )
     questions = {q.id: q for q in result.scalars().all()}
+    submitted = {qid: choice for qid, choice in submitted.items() if qid in questions}
+
+    if not submitted:
+        raise HTTPException(status_code=400, detail="No valid answers submitted for this topic")
 
     user_api_key = get_user_api_key(request)
     score, results_data = await _build_results_data(submitted, questions, db, api_key=user_api_key)
+    max_score = len(submitted)
 
     attempt = QuizAttempt(
         topic_slug=slug,
         score=score,
-        max_score=len(question_ids),
+        max_score=max_score,
         attempted_at=datetime.now(timezone.utc),
     )
     db.add(attempt)
@@ -269,7 +288,7 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
 
     quiz_context = _json.dumps({
         "score": score,
-        "max": len(question_ids),
+        "max": max_score,
         "topic": topic.title_it,
         "wrong": [r["question_it"][:60] for r in results_data if not r["is_correct"]],
     }, ensure_ascii=False)
@@ -281,7 +300,7 @@ async def quiz_submit(request: Request, slug: str, db: AsyncSession = Depends(ge
             "topic": topic,
             "quiz_title": f"Risultati: {topic.title_it}",
             "score": score,
-            "max_score": len(question_ids),
+            "max_score": max_score,
             "results": results_data,
             "history": history,
             "active_tab": "topics",
@@ -425,18 +444,26 @@ async def subject_quiz_submit(
 
     question_ids = list(submitted.keys())
     result = await db.execute(
-        select(QuizQuestion).where(QuizQuestion.id.in_(question_ids))
+        select(QuizQuestion)
+        .join(Topic, QuizQuestion.topic_slug == Topic.slug)
+        .where(QuizQuestion.id.in_(question_ids))
+        .where(Topic.subject == subject)
     )
     questions = {q.id: q for q in result.scalars().all()}
+    submitted = {qid: choice for qid, choice in submitted.items() if qid in questions}
+
+    if not submitted:
+        raise HTTPException(status_code=400, detail="No valid answers submitted for this subject")
 
     user_api_key = get_user_api_key(request)
     score, results_data = await _build_results_data(submitted, questions, db, api_key=user_api_key)
+    max_score = len(submitted)
 
     attempt = QuizAttempt(
         topic_slug=None,
         subject=subject,
         score=score,
-        max_score=len(question_ids),
+        max_score=max_score,
         attempted_at=datetime.now(timezone.utc),
     )
     db.add(attempt)
@@ -455,7 +482,7 @@ async def subject_quiz_submit(
 
     quiz_context = _json.dumps({
         "score": score,
-        "max": len(question_ids),
+        "max": max_score,
         "subject": subject_name,
         "wrong": [r["question_it"][:60] for r in results_data if not r["is_correct"]],
     }, ensure_ascii=False)
@@ -467,7 +494,7 @@ async def subject_quiz_submit(
             "topic": None,
             "quiz_title": f"Risultati Quiz {subject_name}",
             "score": score,
-            "max_score": len(question_ids),
+            "max_score": max_score,
             "results": results_data,
             "history": history,
             "active_tab": "topics",

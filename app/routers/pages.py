@@ -288,6 +288,11 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
         select(distinct(Topic.subject)).order_by(Topic.subject)
     )
     subjects = subjects_result.scalars().all()
+    counts_result = await db.execute(
+        select(Topic.subject, func.count())
+        .group_by(Topic.subject)
+    )
+    topic_counts = {subject: count for subject, count in counts_result.all()}
     due_count = await fsrs_service.get_due_count(db)
 
     # Last 3 distinct topic slugs from quiz attempts (most recent first), skip nulls
@@ -319,6 +324,7 @@ async def home(request: Request, db: AsyncSession = Depends(get_db)):
             "active_tab": "topics",
             "due_count": due_count,
             "recent_topics": recent_topics,
+            "topic_counts": topic_counts,
         },
     )
 

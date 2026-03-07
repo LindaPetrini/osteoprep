@@ -38,6 +38,15 @@ TOPICS = [
     {"slug": "equilibrio-chimico", "title_it": "Equilibrio chimico e tamponi", "title_en": "Chemical equilibrium and buffers", "subject": "chemistry", "order_in_subject": 12},
     {"slug": "nomenclatura-inorganica", "title_it": "Nomenclatura composti inorganici", "title_en": "Inorganic compound nomenclature", "subject": "chemistry", "order_in_subject": 13},
     {"slug": "chimica-organica", "title_it": "Chimica organica: idrocarburi e gruppi funzionali", "title_en": "Organic chemistry: hydrocarbons and functional groups", "subject": "chemistry", "order_in_subject": 14},
+    # Logic topics
+    {"slug": "logica-proposizionale", "title_it": "Logica proposizionale", "title_en": "Propositional logic", "subject": "logic", "order_in_subject": 1},
+    {"slug": "sillogismi", "title_it": "Sillogismi e deduzioni", "title_en": "Syllogisms and deductions", "subject": "logic", "order_in_subject": 2},
+    {"slug": "ragionamento-condizionale", "title_it": "Ragionamento condizionale", "title_en": "Conditional reasoning", "subject": "logic", "order_in_subject": 3},
+    {"slug": "serie-numeriche", "title_it": "Serie numeriche", "title_en": "Numerical sequences", "subject": "logic", "order_in_subject": 4},
+    {"slug": "brani-logici", "title_it": "Comprensione di brani logici", "title_en": "Logical reading comprehension", "subject": "logic", "order_in_subject": 5},
+    {"slug": "problem-solving", "title_it": "Problem solving", "title_en": "Problem solving", "subject": "logic", "order_in_subject": 6},
+    {"slug": "insiemi-relazioni", "title_it": "Insiemi e relazioni", "title_en": "Sets and relations", "subject": "logic", "order_in_subject": 7},
+    {"slug": "logica-argomentativa", "title_it": "Logica argomentativa", "title_en": "Argumentative logic", "subject": "logic", "order_in_subject": 8},
     # Physics / Math topics (new subject: "physics")
     {"slug": "grandezze-fisiche", "title_it": "Grandezze fisiche e misura", "title_en": "Physical quantities and measurement", "subject": "physics", "order_in_subject": 1},
     {"slug": "cinematica", "title_it": "Cinematica", "title_en": "Kinematics", "subject": "physics", "order_in_subject": 2},

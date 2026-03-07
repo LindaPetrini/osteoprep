@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+import tempfile
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -10,9 +12,12 @@ from app.main import app
 from app.database import Base, get_db
 from app.models import Topic, SectionQuestion, QuizQuestion, ExamQuestion, PracticeTestAttempt, PracticeTestAnswer
 
-TEST_DB_URL = "sqlite+aiosqlite:///./tests/test.db"
+_fd, _test_db_path = tempfile.mkstemp(prefix="osteoprep-test-", suffix=".db")
+os.close(_fd)
+TEST_DB_URL = f"sqlite+aiosqlite:///{_test_db_path}"
 test_engine = create_async_engine(TEST_DB_URL)
 TestSessionLocal = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+DB_TIMEOUT_ACTION = os.getenv("OSTEOPREP_TEST_DB_TIMEOUT_ACTION", "fail").strip().lower()
 
 async def override_get_db():
     async with TestSessionLocal() as session:
@@ -26,12 +31,33 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_db():
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    async def _create_schema():
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
+    try:
+        await asyncio.wait_for(_create_schema(), timeout=10)
+    except TimeoutError:
+        msg = "Test DB setup timed out (aiosqlite connection stalled in this environment)"
+        if DB_TIMEOUT_ACTION == "skip":
+            pytest.skip(msg)
+        raise RuntimeError(f"{msg}. Set OSTEOPREP_TEST_DB_TIMEOUT_ACTION=skip to skip instead.")
+
     yield
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    async def _drop_schema():
+        async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+
+    try:
+        await asyncio.wait_for(_drop_schema(), timeout=10)
+    except TimeoutError:
+        if DB_TIMEOUT_ACTION != "skip":
+            raise RuntimeError("Test DB teardown timed out.")
     await test_engine.dispose()
+    try:
+        os.remove(_test_db_path)
+    except FileNotFoundError:
+        pass
 
 @pytest_asyncio.fixture
 async def db():
