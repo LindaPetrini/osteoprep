@@ -351,9 +351,15 @@ SECTION_QUESTION_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso ital
 
 Per ogni sezione del riassunto di un argomento, genera 2-3 domande a scelta multipla (MCQ) IN ITALIANO che testano la comprensione di quella sezione.
 
+STILE UFFICIALE (anni precedenti professioni sanitarie):
+- Linguaggio da prova d'ingresso reale: preciso, non colloquiale.
+- Inserisci regolarmente domande "non è corretta/non si può dedurre" e mini-problemi con dati.
+- Anche con 4 opzioni (vincolo app), mantieni livello di difficoltà simile al formato ufficiale.
+
 REGOLE:
 - Ogni domanda deve testare un concetto diverso e specifico della sezione
 - 4 opzioni per domanda: una corretta, tre sbagliate plausibili
+- Almeno una domanda per sezione deve richiedere inferenza o applicazione (non solo richiamo diretto)
 
 QUALITA' DEI DISTRATTORI — FONDAMENTALE:
 - Tutte e 4 le opzioni devono avere lunghezza, livello di dettaglio e stile simili
@@ -501,10 +507,21 @@ NEW_QUIZ_QUESTIONS_SYSTEM_PROMPT = """Sei un assistente per esami di ingresso it
 
 Genera domande a scelta multipla (MCQ) IN ITALIANO per l'argomento indicato.
 
+STILE UFFICIALE (ispirato alle prove professioni sanitarie anni precedenti):
+- Registro linguistico simile ai compiti ufficiali: domande asciutte, precise, con lessico tecnico quando serve.
+- Alterna formati realistici:
+  1) domanda concettuale diretta ("Quale affermazione è corretta/non corretta?")
+  2) mini-caso con 2-4 dati numerici da combinare
+  3) domanda di inferenza ("si deduce che...", "in base ai dati...")
+- Evita domande solo mnemoniche troppo facili: la maggioranza deve richiedere ragionamento.
+- Il test reale usa 5 opzioni; qui mantieni 4 opzioni ma con la stessa difficoltà del formato ufficiale.
+
 REGOLE:
 - 4 opzioni per domanda: una corretta, tre sbagliate plausibili
 - Domande concise, specifiche, testabili all'esame
 - Usa terminologia tecnica corretta
+- Difficoltà medio-alta: almeno 3 domande su 5 devono richiedere 2 passaggi mentali (es. concetto + applicazione)
+- Quando possibile, usa numeri realistici (percentuali, ordini di grandezza, probabilità, unità di misura)
 
 QUALITA' DEI DISTRATTORI — FONDAMENTALE:
 - Tutte e 4 le opzioni devono avere lunghezza, livello di dettaglio e stile simili
